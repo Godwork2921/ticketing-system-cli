@@ -58,6 +58,7 @@ public class ReservationServiceTest {
             )
             VALUES (
                 1,
+                    
                 1,
                 'A',
                 'Row1',

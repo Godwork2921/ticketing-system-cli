@@ -18,10 +18,7 @@ public class UserService {
             throw new RuntimeException("User cannot be null");
         }
 
-        // check duplicate email
-        User existing = userDAO.findByEmail(user.getEmail());
-
-        if (existing != null) {
+        if (userDAO.findByEmail(user.getEmail()) != null) {
             throw new RuntimeException("Email already registered");
         }
 

@@ -4,7 +4,7 @@ import com.ticketing.enums.Role;
 import com.ticketing.model.User;
 import com.ticketing.ui.InputScanner;
 import com.ticketing.ui.controller.LoginController;
-
+import org.mindrot.jbcrypt.BCrypt;
 public class LoginMenu {
 
     private final LoginController loginController = new LoginController();
@@ -68,27 +68,115 @@ public class LoginMenu {
         }
     }
 
+
+    private boolean isStrongPassword(String password) {
+
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+
+        boolean hasUpper = false;
+        boolean hasLower = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+
+        for (char c : password.toCharArray()) {
+
+            if (Character.isUpperCase(c)) {
+                hasUpper = true;
+            } else if (Character.isLowerCase(c)) {
+                hasLower = true;
+            } else if (Character.isDigit(c)) {
+                hasDigit = true;
+            } else {
+                hasSpecial = true;
+            }
+        }
+
+        return hasUpper && hasLower && hasDigit && hasSpecial;
+    }
+
+    private boolean isValidEmail(String email) {
+
+        if (email == null) return false;
+
+        return email.matches("^[a-z][a-z0-9]*@gmail\\.com$");
+    }
+
     private void register() {
 
         try {
 
             System.out.println("\n===== REGISTER CUSTOMER =====");
 
-            System.out.print("Name: ");
-            String name = InputScanner.nextLine();
+            String name;
 
-            System.out.print("Email: ");
-            String email = InputScanner.nextLine();
+            while (true) {
 
-            System.out.print("Password: ");
-            String password = InputScanner.nextLine();
+                System.out.print("Name: ");
+                name = InputScanner.nextLine();
 
+                if (name != null
+                        && !name.trim().isEmpty()
+                        && name.matches("[A-Za-z ]+")) {
+                    break;
+                }
+
+                System.out.println(
+                        "Invalid name! Please enter letters and spaces only."
+                );
+            }
+
+            String email;
+
+            while (true) {
+
+                System.out.print("Email: ");
+                email = InputScanner.nextLine();
+
+                if (isValidEmail(email)) {
+                    break;
+                }
+
+                System.out.println(
+                        "Invalid email! Must start with lowercase letter and end with @gmail.com"
+                );
+            }
+
+            String password;
+
+            while (true) {
+
+                System.out.print("Password: ");
+                password = InputScanner.nextLine();
+
+                if (isStrongPassword(password)) {
+                    break;
+                }
+
+                System.out.println(
+                        "Weak password! Must be 8+ chars, include uppercase, lowercase, number, and special character."
+                );
+            }
+
+// HASH AFTER VALIDATION
+            String hashedPassword =
+                    BCrypt.hashpw(password, BCrypt.gensalt());
+
+// REGISTER USER WITH HASHED PASSWORD
             loginController.registerCustomer(
                     null,
                     name,
                     email,
-                    password
+                    hashedPassword
             );
+
+//            loginController.registerCustomer(
+//                    null,
+//                    name,
+//                    email,
+//                    password
+//            );
 
             System.out.println("Registration successful!");
 

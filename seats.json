@@ -1,64 +1,10 @@
 [ {
-  "id" : 4,
-  "eventId" : 2,
-  "section" : "REGULAR",
-  "row" : "B",
-  "number" : 3,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "REGULAR-B-3"
-}, {
-  "id" : 1,
-  "eventId" : 2,
-  "section" : "vip",
-  "row" : "A",
-  "number" : 1,
-  "status" : "RESERVED",
-  "available" : false,
-  "seatLabel" : "vip-A-1"
-}, {
   "id" : 2,
   "eventId" : 2,
-  "section" : "REGULAR",
-  "row" : "B",
-  "number" : 1,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "REGULAR-B-1"
-}, {
-  "id" : 6,
-  "eventId" : 1,
-  "section" : "regular",
-  "row" : "B",
-  "number" : 7,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "regular-B-7"
-}, {
-  "id" : 8,
-  "eventId" : 1,
-  "section" : "vip",
-  "row" : "A",
-  "number" : 9,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "vip-A-9"
-}, {
-  "id" : 9,
-  "eventId" : 1,
-  "section" : "regular",
-  "row" : "A",
-  "number" : 11,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "regular-A-11"
-}, {
-  "id" : 3,
-  "eventId" : 2,
   "section" : "VIP",
-  "row" : "A",
+  "row" : "1",
   "number" : 2,
-  "status" : "RESERVED",
-  "available" : false,
-  "seatLabel" : "VIP-A-2"
+  "status" : "AVAILABLE",
+  "seatLabel" : "VIP-1-2",
+  "available" : true
 } ]

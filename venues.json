@@ -1,11 +1,11 @@
 [ {
   "id" : 1,
-  "name" : "millinium",
-  "address" : "AA",
-  "timezone" : "2026-06-18"
+  "name" : "Test Venue",
+  "address" : "Addis",
+  "timezone" : "UTC"
 }, {
-  "id" : 2,
-  "name" : "sharaton addis",
+  "id" : 4,
+  "name" : "atlas",
   "address" : "AA",
-  "timezone" : "2026-06-24"
+  "timezone" : "2026-07-12"
 } ]

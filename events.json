@@ -1,14 +1,14 @@
 [ {
-  "id" : 1,
-  "title" : "music concert",
+  "id" : 100,
+  "title" : "Test Event",
   "venue" : {
     "id" : 1,
-    "name" : "millinium",
-    "address" : "AA",
-    "timezone" : "2026-06-18"
+    "name" : "Test Venue",
+    "address" : "Addis",
+    "timezone" : "UTC"
   },
-  "startTime" : "2026-07-11T04:00:00",
-  "endTime" : "2026-07-21T08:00:00",
+  "startTime" : "2026-01-01T10:00:00",
+  "endTime" : "2026-01-01T12:00:00",
   "status" : "ACTIVE",
   "seats" : [ ],
   "availableSeats" : [ ],
@@ -17,13 +17,13 @@
   "id" : 2,
   "title" : "java conference",
   "venue" : {
-    "id" : 2,
-    "name" : "sharaton addis",
+    "id" : 4,
+    "name" : "atlas",
     "address" : "AA",
-    "timezone" : "2026-06-24"
+    "timezone" : "2026-07-12"
   },
-  "startTime" : "2026-06-17T07:00:00",
-  "endTime" : "2026-06-17T17:00:00",
+  "startTime" : "2026-07-12T02:00:00",
+  "endTime" : "2026-07-22T02:00:00",
   "status" : "ACTIVE",
   "seats" : [ ],
   "availableSeats" : [ ],
