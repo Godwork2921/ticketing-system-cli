@@ -1,0 +1,49 @@
+[ {
+  "id" : 1,
+  "name" : "Admin",
+  "email" : "admin@test.com",
+  "role" : "OPERATOR",
+  "password" : "admin123",
+  "operator" : true,
+  "customer" : false
+}, {
+  "id" : 2,
+  "name" : "John",
+  "email" : "john@test.com",
+  "role" : "CUSTOMER",
+  "password" : "john123",
+  "operator" : false,
+  "customer" : true
+}, {
+  "id" : 3,
+  "name" : "Sara",
+  "email" : "sara@test.com",
+  "role" : "CUSTOMER",
+  "password" : "sara123",
+  "operator" : false,
+  "customer" : true
+}, {
+  "id" : 4,
+  "name" : "abebe",
+  "email" : "abebe@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "abebe123",
+  "operator" : false,
+  "customer" : true
+}, {
+  "id" : 5,
+  "name" : "abebe",
+  "email" : "abe@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "abe123",
+  "operator" : false,
+  "customer" : true
+}, {
+  "id" : 6,
+  "name" : "baba",
+  "email" : "baba@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "baba123",
+  "operator" : false,
+  "customer" : true
+} ]

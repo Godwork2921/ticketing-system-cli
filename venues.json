@@ -1,0 +1,11 @@
+[ {
+  "id" : 1,
+  "name" : "millinium",
+  "address" : "AA",
+  "timezone" : "2026-06-18"
+}, {
+  "id" : 2,
+  "name" : "sharaton addis",
+  "address" : "AA",
+  "timezone" : "2026-06-24"
+} ]

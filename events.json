@@ -1,0 +1,31 @@
+[ {
+  "id" : 1,
+  "title" : "music concert",
+  "venue" : {
+    "id" : 1,
+    "name" : "millinium",
+    "address" : "AA",
+    "timezone" : "2026-06-18"
+  },
+  "startTime" : "2026-07-11T04:00:00",
+  "endTime" : "2026-07-21T08:00:00",
+  "status" : "ACTIVE",
+  "seats" : [ ],
+  "availableSeats" : [ ],
+  "totalSeats" : 0
+}, {
+  "id" : 2,
+  "title" : "java conference",
+  "venue" : {
+    "id" : 2,
+    "name" : "sharaton addis",
+    "address" : "AA",
+    "timezone" : "2026-06-24"
+  },
+  "startTime" : "2026-06-17T07:00:00",
+  "endTime" : "2026-06-17T17:00:00",
+  "status" : "ACTIVE",
+  "seats" : [ ],
+  "availableSeats" : [ ],
+  "totalSeats" : 0
+} ]

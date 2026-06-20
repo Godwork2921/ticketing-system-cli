@@ -1,0 +1,9 @@
+[ {
+  "id" : 9,
+  "customerEmail" : "john@test.com",
+  "eventId" : 2,
+  "seatId" : 3,
+  "status" : "CONFIRMED",
+  "createdAt" : "2026-06-19T16:42:28.772681",
+  "confirmed" : true
+} ]
