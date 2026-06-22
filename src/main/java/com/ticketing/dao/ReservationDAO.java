@@ -10,14 +10,14 @@ import java.util.List;
 
 public class ReservationDAO {
 
-    // SAVE (AUTO GENERATED ID)
+    // SAVE
     public void save(Reservation reservation) {
 
         String sql = """
-        INSERT INTO reservations
-        (customer_email, event_id, seat_id, status, created_at)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+            INSERT INTO reservations
+            (customer_email, event_id, seat_id, status, created_at)
+            VALUES (?, ?, ?, ?, ?)
+        """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -31,13 +31,13 @@ public class ReservationDAO {
             ps.executeUpdate();
 
         } catch (SQLIntegrityConstraintViolationException e) {
-            // 🔥 duplicate ignored safely
-            System.out.println("Duplicate reservation ignored.");
+            throw new RuntimeException("Duplicate reservation not allowed", e);
         } catch (Exception e) {
             throw new RuntimeException("Failed to save reservation", e);
         }
     }
-    // CHECK DOUBLE BOOKING
+
+    // CHECK: seat already booked
     public boolean existsBySeatId(Long seatId) {
 
         String sql = """
@@ -58,6 +58,37 @@ public class ReservationDAO {
             }
 
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return false;
+    }
+
+    // IDEMPOTENCY CHECK
+    public boolean exists(String customerEmail, Long eventId, Long seatId) {
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM reservations
+            WHERE customer_email = ?
+            AND event_id = ?
+            AND seat_id = ?
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, customerEmail);
+            ps.setLong(2, eventId);
+            ps.setLong(3, seatId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
@@ -110,33 +141,22 @@ public class ReservationDAO {
     }
 
     // CANCEL
-    public boolean cancel(
-            Long reservationId
-    ) {
+    public boolean cancel(Long reservationId) {
 
         String sql = """
             UPDATE reservations
             SET status = 'CANCELLED'
             WHERE id = ?
-            """;
+        """;
 
-        try (
-                Connection connection =
-                        DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-        ) {
+            ps.setLong(1, reservationId);
 
-            statement.setLong(
-                    1,
-                    reservationId
-            );
-
-            return statement.executeUpdate() > 0;
+            return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-
             throw new RuntimeException(
                     "Failed to cancel reservation",
                     e
