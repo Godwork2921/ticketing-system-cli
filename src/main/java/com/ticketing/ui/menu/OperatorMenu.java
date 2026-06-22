@@ -1,27 +1,32 @@
 package com.ticketing.ui.menu;
-
+import java.time.ZoneId;
 import com.ticketing.dao.*;
 import com.ticketing.model.*;
+import com.ticketing.service.EventService;
+import com.ticketing.service.SeatService;
+import com.ticketing.service.VenueService;
 import com.ticketing.storage.JsonExporter;
 import com.ticketing.storage.JsonImporter;
 import com.ticketing.ui.InputScanner;
 import com.ticketing.ui.controller.OperatorController;
+import com.ticketing.util.ValidationUtil;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
 public class OperatorMenu {
-
+    private final VenueService venueService = new VenueService();
     private final UserDAO userDAO = new UserDAO();
     private final VenueDAO venueDAO = new VenueDAO();
     private final EventDAO eventDAO = new EventDAO();
     private final SeatDAO seatDAO = new SeatDAO();
     private final ReservationDAO reservationDAO = new ReservationDAO();
-
+    private final EventService eventService = new EventService();
     private final OperatorController controller = new OperatorController();
     private final JsonImporter importer = new JsonImporter();
     private final JsonExporter exporter = new JsonExporter();
+    private final SeatService seatService = new SeatService();
 
     public void show() {
 
@@ -82,65 +87,371 @@ public class OperatorMenu {
     // =========================
     private void createVenue() {
 
-        System.out.print("Venue ID: ");
-        Long id = InputScanner.nextLong();
+        Long id;
 
-        System.out.print("Venue Name: ");
-        String name = InputScanner.nextLine();
+        while (true) {
 
-        System.out.print("Address: ");
-        String address = InputScanner.nextLine();
+            try {
 
-        System.out.print("Timezone: ");
-        String timezone = InputScanner.nextLine();
+                System.out.print("Venue ID: ");
+
+                id = InputScanner.nextLong();
+
+                if (!ValidationUtil.isValidId(id)) {
+                    System.out.println("Invalid ID! Must be number > 0");
+                    continue;
+                }
+
+                if (venueDAO.findById(id) != null) {
+
+                    System.out.println(
+                            "This Venue ID already exists! Please enter a new Venue ID."
+                    );
+
+                    continue;
+                }
+
+                break;
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Enter a valid long number."
+                );
+
+                InputScanner.nextLine();
+            }
+        }
+
+        String name;
+
+        while (true) {
+
+            System.out.print("Venue Name: ");
+               name = InputScanner.nextLine();
+
+            if (ValidationUtil.isValidName(name)) {
+                break;
+            }
+
+
+            System.out.println(
+                    "Invalid Venue Name! Letters and spaces only."
+            );
+        }
+
+        String address;
+        while (true) {
+            System.out.print("Address: ");
+            address = InputScanner.nextLine();
+
+            if (ValidationUtil.isValidAddress(address)) {
+                break;
+            }
+            System.out.println(
+                    "Invalid Venue address! Letters or street number only."
+            );
+        }
+
+
+        String timezone;
+
+        while (true) {
+
+            System.out.print("Timezone: ");
+            timezone = InputScanner.nextLine();
+
+            if (ValidationUtil.isValidTimezone(timezone)) {
+                break;
+            }
+
+            System.out.println(
+                    "Invalid timezone! Use a valid ZoneId such as Africa/Addis_Ababa"
+            );
+        }
+
+
+
 
         controller.createVenue(id, name, address, timezone);
     }
 
+    public Venue findById(Long id) {
+        return venueDAO.findById(id);
+    }
     // =========================
     // EVENT
     // =========================
     private void createEvent() {
 
-        System.out.print("Event ID: ");
-        Long id = InputScanner.nextLong();
+        Long eventId;
 
-        System.out.print("Title: ");
-        String title = InputScanner.nextLine();
+        // =========================
+        // EVENT ID
+        // =========================
+        while (true) {
 
-        System.out.print("Venue ID: ");
-        Long venueId = InputScanner.nextLong();
+            try {
+                System.out.print("Event ID: ");
+                eventId = InputScanner.nextLong();
 
-        System.out.print("Start (yyyy-MM-ddTHH:mm): ");
-        LocalDateTime start = LocalDateTime.parse(InputScanner.nextLine());
+                if (!ValidationUtil.isValidId(eventId)) {
+                    System.out.println("Invalid ID! Must be number > 0");
+                    continue;
+                }
 
-        System.out.print("End (yyyy-MM-ddTHH:mm): ");
-        LocalDateTime end = LocalDateTime.parse(InputScanner.nextLine());
+                if (eventService.findById(eventId) != null) {
+                    System.out.println("This Event ID already exists!");
+                    continue;
+                }
 
-        controller.createEvent(id, title, venueId, start, end);
+                break;
+
+            } catch (Exception e) {
+                System.out.println("Enter a valid long number.");
+                InputScanner.nextLine();
+            }
+        }
+
+
+
+        // =========================
+        // TITLE
+        // =========================
+        String title;
+
+        while (true) {
+
+            System.out.print("Title: ");
+            title = InputScanner.nextLine();
+
+            if (ValidationUtil.isValidEventTitle(title)) {
+                break;
+            }
+
+            System.out.println("Invalid title! Letters, numbers, spaces and '-' only.");
+        }
+
+        // =========================
+        // VENUE ID
+        // =========================
+        Long venueId;
+
+        while (true) {
+
+            try {
+                System.out.print("Venue ID: ");
+                venueId = InputScanner.nextLong();
+
+                if (!ValidationUtil.isValidId(venueId)) {
+                    System.out.println("Invalid venue ID!");
+                    continue;
+                }
+
+                if (venueService.findVenueById(venueId) == null) {
+                    System.out.println("Venue not found!");
+                    continue;
+                }
+
+                break;
+
+            } catch (Exception e) {
+                System.out.println("Invalid Venue ID!");
+                InputScanner.nextLine();
+            }
+        }
+
+
+
+        // =========================
+        // START TIME
+        // =========================
+        LocalDateTime start;
+
+        while (true) {
+
+            try {
+                System.out.print("Start (yyyy-MM-ddTHH:mm): ");
+                start = LocalDateTime.parse(InputScanner.nextLine());
+                break;
+
+            } catch (Exception e) {
+                System.out.println("Invalid date format!");
+            }
+        }
+
+        // =========================
+        // END TIME
+        // =========================
+        LocalDateTime end;
+
+        while (true) {
+
+            try {
+                System.out.print("End (yyyy-MM-ddTHH:mm): ");
+                end = LocalDateTime.parse(InputScanner.nextLine());
+
+                if (end.isAfter(start)) {
+                    break;
+                }
+
+                System.out.println("End time must be after start time!");
+
+            } catch (Exception e) {
+                System.out.println("Invalid date format!");
+            }
+        }
+
+        // =========================
+        // CONFLICT CHECK (TIME + VENUE)
+        // =========================
+        if (eventService.hasTimeConflict(venueId, start, end)) {
+            System.out.println("Another event already exists at this venue during that time!");
+            return;
+        }
+
+        // =========================
+        // DUPLICATE EVENT CHECK
+        // =========================
+        if (eventService.eventExists(title, venueId, start, end)) {
+            System.out.println("Event with same title already exists at this venue & time!");
+            return;
+        }
+
+        // =========================
+        // CREATE EVENT
+        // =========================
+        controller.createEvent(eventId, title, venueId, start, end);
+
+        System.out.println("Event created successfully!");
     }
-
     // =========================
     // SEAT
     // =========================
     private void createSeat() {
 
-        System.out.print("Event ID: ");
-        Long eventId = InputScanner.nextLong();
+        Long eventId;
 
-        System.out.print("Seat ID: ");
-        Long seatId = InputScanner.nextLong();
+        while (true) {
 
-        System.out.print("Section: ");
-        String section = InputScanner.nextLine();
+            try {
 
-        System.out.print("Row: ");
-        String row = InputScanner.nextLine();
+                System.out.print("Event ID: ");
 
-        System.out.print("Seat Number: ");
-        int number = InputScanner.nextInt();
+                eventId = InputScanner.nextLong();
 
-        controller.createSeat(eventId, seatId, section, row, number);
+                if (eventService.findById(eventId) != null) {
+                    break;
+                }
+
+                System.out.println("Event not found!");
+
+            } catch (Exception e) {
+
+                System.out.println("Invalid Event ID!");
+                InputScanner.nextLine();
+            }
+        }
+
+        Long seatId;
+
+        while (true) {
+
+            try {
+
+                System.out.print("Seat ID: ");
+
+                seatId = InputScanner.nextLong();
+
+                if (seatService.findById(seatId) == null) {
+                    break;
+                }
+
+                System.out.println("Seat ID already exists!");
+
+            } catch (Exception e) {
+
+                System.out.println("Invalid Seat ID!");
+                InputScanner.nextLine();
+            }
+        }
+
+        String section;
+
+        while (true) {
+
+            System.out.print("Section (VIP/REGULAR): ");
+
+            section = InputScanner.nextLine().trim();
+
+            if (section.equalsIgnoreCase("VIP")
+                    || section.equalsIgnoreCase("REGULAR")) {
+
+                section = section.toUpperCase();
+
+                break;
+            }
+
+            System.out.println(
+                    "Invalid section! Only VIP or REGULAR allowed."
+            );
+        }
+
+        String row;
+
+        while (true) {
+
+            System.out.print("Row (A-Z): ");
+
+            row = InputScanner.nextLine().trim();
+
+            if (row.matches("[A-Za-z]")) {
+
+                row = row.toUpperCase();
+
+                break;
+            }
+
+            System.out.println(
+                    "Invalid row! Enter a single letter from A to Z."
+            );
+        }
+
+        int number;
+
+        while (true) {
+
+            try {
+
+                System.out.print("Seat Number: ");
+
+                number = InputScanner.nextInt();
+
+                if (number > 0) {
+                    break;
+                }
+
+                System.out.println(
+                        "Seat number must be positive!"
+                );
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Invalid seat number!"
+                );
+
+                InputScanner.nextLine();
+            }
+        }
+
+        controller.createSeat(
+                eventId,
+                seatId,
+                section,
+                row,
+                number
+        );
     }
 
     // =========================

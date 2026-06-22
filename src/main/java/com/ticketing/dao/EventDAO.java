@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.Connection;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -173,6 +174,48 @@ public class EventDAO {
         }
 
         return events;
+    }
+
+
+    public boolean eventExists(
+            String title,
+            Long venueId,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+
+        String sql = """
+        SELECT COUNT(*)
+        FROM events
+        WHERE LOWER(title) = LOWER(?)
+        AND venue_id = ?
+        AND (
+                (? < end_time)
+            AND (? > start_time)
+        )
+        """;
+
+        try (
+                Connection conn = DBConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+
+            ps.setString(1, title);
+            ps.setLong(2, venueId);
+            ps.setTimestamp(3, Timestamp.valueOf(start));
+            ps.setTimestamp(4, Timestamp.valueOf(end));
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return false;
     }
 
     public boolean update(Event event) {

@@ -1,31 +1,46 @@
 [ {
-  "id" : 100,
-  "title" : "Test Event",
+  "id" : 1,
+  "title" : "123edqeas",
   "venue" : {
-    "id" : 1,
-    "name" : "Test Venue",
-    "address" : "Addis",
-    "timezone" : "UTC"
+    "id" : 22,
+    "name" : "wwdkh",
+    "address" : "znxns2",
+    "timezone" : "Europe/London"
   },
-  "startTime" : "2026-01-01T10:00:00",
-  "endTime" : "2026-01-01T12:00:00",
+  "startTime" : "2027-06-18T10:00:00",
+  "endTime" : "2027-06-18T20:00:00",
   "status" : "ACTIVE",
   "seats" : [ ],
-  "availableSeats" : [ ],
-  "totalSeats" : 0
+  "totalSeats" : 0,
+  "availableSeats" : [ ]
 }, {
   "id" : 2,
-  "title" : "java conference",
+  "title" : "s23e",
   "venue" : {
-    "id" : 4,
-    "name" : "atlas",
-    "address" : "AA",
-    "timezone" : "2026-07-12"
+    "id" : 1,
+    "name" : "hsdh",
+    "address" : "sywdy",
+    "timezone" : "4rrfygiojo8"
   },
-  "startTime" : "2026-07-12T02:00:00",
-  "endTime" : "2026-07-22T02:00:00",
+  "startTime" : "2026-03-16T21:00:00",
+  "endTime" : "2026-03-17T21:00:00",
   "status" : "ACTIVE",
   "seats" : [ ],
-  "availableSeats" : [ ],
-  "totalSeats" : 0
+  "totalSeats" : 0,
+  "availableSeats" : [ ]
+}, {
+  "id" : 3,
+  "title" : "weer",
+  "venue" : {
+    "id" : 1,
+    "name" : "hsdh",
+    "address" : "sywdy",
+    "timezone" : "4rrfygiojo8"
+  },
+  "startTime" : "2026-07-12T10:00:00",
+  "endTime" : "2026-07-12T17:00:00",
+  "status" : "ACTIVE",
+  "seats" : [ ],
+  "totalSeats" : 0,
+  "availableSeats" : [ ]
 } ]

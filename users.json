@@ -1,5 +1,5 @@
 [ {
-  "id" : 1,
+  "id" : 2,
   "name" : "Admin",
   "email" : "admin@test.com",
   "role" : "OPERATOR",
@@ -7,7 +7,7 @@
   "customer" : false,
   "operator" : true
 }, {
-  "id" : 2,
+  "id" : 3,
   "name" : "John",
   "email" : "john@test.com",
   "role" : "CUSTOMER",
@@ -15,7 +15,7 @@
   "customer" : true,
   "operator" : false
 }, {
-  "id" : 3,
+  "id" : 4,
   "name" : "Sara",
   "email" : "sara@test.com",
   "role" : "CUSTOMER",
@@ -23,27 +23,59 @@
   "customer" : true,
   "operator" : false
 }, {
-  "id" : 4,
-  "name" : "abebe",
-  "email" : "abebe@gmail.com",
-  "role" : "CUSTOMER",
-  "password" : "abebe123",
-  "customer" : true,
-  "operator" : false
-}, {
   "id" : 5,
-  "name" : "abebe",
-  "email" : "abe@gmail.com",
+  "name" : "swsxes",
+  "email" : "asgsh@gmail.com",
   "role" : "CUSTOMER",
-  "password" : "abe123",
+  "password" : "$2a$10$9Mu2XUZhwErf3xYlvoGXvuTZlg0uIHUI/s/d2dMEWRsA5Cgn9jNJ6",
   "customer" : true,
   "operator" : false
 }, {
   "id" : 6,
-  "name" : "baba",
-  "email" : "baba@gmail.com",
+  "name" : "alice",
+  "email" : "alice12@gmail.com",
   "role" : "CUSTOMER",
-  "password" : "baba123",
+  "password" : "$2a$10$SH6HCNuR8nJBtG5ipFXpteutzryaylwP99TqYpYDf3XWp6dYrudnG",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 7,
+  "name" : "avsgv",
+  "email" : "anb@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$eDPRUUks5G7U4R0usHtgGeqbuMT8J3i1i51SyLC998m0PZPVApL5u",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 8,
+  "name" : "wgygs",
+  "email" : "adf234@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$vXsxspdkfkSrReu9JOB5uOrCyNhrdfyhuPKJ6Kn0tP0HMXxY9R6TC",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 9,
+  "name" : "shqhs",
+  "email" : "rty12@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$6rsJ2UipEW.7IQcgP5586uQpHUgocoq7PHBahBeIxjmUUdAP9Zkym",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 10,
+  "name" : "rtyu",
+  "email" : "adfg22@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$XD1.m0W3UHe/VPK/hZt0Yu2xl9t2SYRkOemamHPwBStkcudR8bSAG",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 1,
+  "name" : "Abebe",
+  "email" : "abebe@test.com",
+  "role" : "CUSTOMER",
+  "password" : "abebe123",
   "customer" : true,
   "operator" : false
 } ]
