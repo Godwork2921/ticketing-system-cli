@@ -1,5 +1,6 @@
 package com.ticketing.dao;
 
+import com.ticketing.cache.VenueCache;
 import com.ticketing.database.DBConnection;
 import com.ticketing.model.Venue;
 
@@ -12,10 +13,10 @@ public class VenueDAO {
     public void save(Venue venue) {
 
         String sql = """
-                INSERT INTO venues
-                (id, name, address, timezone)
-                VALUES (?, ?, ?, ?)
-                """;
+            INSERT INTO venues
+            (id, name, address, timezone)
+            VALUES (?, ?, ?, ?)
+            """;
 
         try (
                 Connection conn = DBConnection.getConnection();
@@ -29,7 +30,11 @@ public class VenueDAO {
 
             ps.executeUpdate();
 
+            // Cache update
+            VenueCache.put(venue);
+
         } catch (SQLException e) {
+
             throw new RuntimeException(
                     "Failed to save venue",
                     e
@@ -51,17 +56,19 @@ public class VenueDAO {
 
             while (rs.next()) {
 
-                Venue venue = new Venue(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("address"),
-                        rs.getString("timezone")
-                );
+                Venue venue =
+                        new Venue(
+                                rs.getLong("id"),
+                                rs.getString("name"),
+                                rs.getString("address"),
+                                rs.getString("timezone")
+                        );
 
                 venues.add(venue);
             }
 
         } catch (SQLException e) {
+
             throw new RuntimeException(
                     "Failed to load venues",
                     e
@@ -72,6 +79,17 @@ public class VenueDAO {
     }
 
     public Venue findById(Long id) {
+
+        // Check cache first
+        Venue cachedVenue = VenueCache.get(id);
+
+        if (cachedVenue != null) {
+
+            System.out.println("[CACHE HIT] Venue");
+
+            return cachedVenue;
+        }
+        System.out.println("[CACHE MISS] Venue");
 
         String sql =
                 "SELECT * FROM venues WHERE id = ?";
@@ -88,12 +106,16 @@ public class VenueDAO {
 
                 if (rs.next()) {
 
-                    return new Venue(
-                            rs.getLong("id"),
-                            rs.getString("name"),
-                            rs.getString("address"),
-                            rs.getString("timezone")
-                    );
+                    Venue venue =
+                            new Venue(
+                                    rs.getLong("id"),
+                                    rs.getString("name"),
+                                    rs.getString("address"),
+                                    rs.getString("timezone")
+                            );
+                    // Store in cache
+                    VenueCache.put(venue);
+                    return venue;
                 }
             }
 
@@ -110,12 +132,12 @@ public class VenueDAO {
     public boolean update(Venue venue) {
 
         String sql = """
-                UPDATE venues
-                SET name = ?,
-                    address = ?,
-                    timezone = ?
-                WHERE id = ?
-                """;
+            UPDATE venues
+            SET name = ?,
+                address = ?,
+                timezone = ?
+            WHERE id = ?
+            """;
 
         try (
                 Connection conn = DBConnection.getConnection();
@@ -128,7 +150,15 @@ public class VenueDAO {
             ps.setString(3, venue.getTimezone());
             ps.setLong(4, venue.getId());
 
-            return ps.executeUpdate() > 0;
+            if (ps.executeUpdate() > 0) {
+
+                // Refresh cache
+                VenueCache.put(venue);
+
+                return true;
+            }
+
+            return false;
 
         } catch (SQLException e) {
             throw new RuntimeException(
@@ -151,7 +181,15 @@ public class VenueDAO {
 
             ps.setLong(1, id);
 
-            return ps.executeUpdate() > 0;
+            if (ps.executeUpdate() > 0) {
+
+                // Remove from cache
+                VenueCache.remove(id);
+
+                return true;
+            }
+
+            return false;
 
         } catch (SQLException e) {
             throw new RuntimeException(
