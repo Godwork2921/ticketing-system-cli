@@ -8,33 +8,23 @@ import java.util.List;
 
 public class EventService {
 
-    private final EventDAO eventDAO =
-            new EventDAO();
+    private final EventDAO eventDAO = new EventDAO();
 
+    // CREATE EVENT
     public void createEvent(Event event) {
-
         eventDAO.save(event);
     }
 
-
-    public boolean eventExists(
-            String title,
-            Long venueId,
-            LocalDateTime start,
-            LocalDateTime end
-    ) {
-        return eventDAO.eventExists(
-                title,
-                venueId,
-                start,
-                end
-        );
+    // CHECK DUPLICATE EVENT (title + venue + time overlap)
+    public boolean eventExists(String title, Long venueId,
+                               LocalDateTime start, LocalDateTime end) {
+        return eventDAO.eventExists(title, venueId, start, end);
     }
 
-
-    public boolean hasConflict(Long venueId,
-                               LocalDateTime start,
-                               LocalDateTime end) {
+    // TIME CONFLICT CHECK (venue schedule overlap)
+    public boolean hasTimeConflict(Long venueId,
+                                   LocalDateTime start,
+                                   LocalDateTime end) {
 
         List<Event> events = eventDAO.findByVenueId(venueId);
 
@@ -44,53 +34,27 @@ public class EventService {
                 return true;
             }
         }
-        return false;
-    }
-
-
-    public boolean hasTimeConflict(
-            Long venueId,
-            LocalDateTime start,
-            LocalDateTime end
-    ) {
-
-        List<Event> events = eventDAO.findAll();
-
-        for (Event event : events) {
-
-            if (!event.getVenue().getId().equals(venueId)) {
-                continue;
-            }
-
-            boolean overlap =
-                    start.isBefore(event.getEndTime())
-                            &&
-                            end.isAfter(event.getStartTime());
-
-            if (overlap) {
-                return true;
-            }
-        }
 
         return false;
     }
+
+    // GET ALL EVENTS
     public List<Event> getAllEvents() {
-
         return eventDAO.findAll();
     }
 
+    // FIND BY ID
     public Event findById(Long id) {
-
         return eventDAO.findById(id);
     }
 
+    // DELETE
     public boolean removeEvent(Long id) {
-
         return eventDAO.delete(id);
     }
 
+    // FIND BY VENUE
     public List<Event> getEventsByVenue(Long venueId) {
-
         return eventDAO.findByVenueId(venueId);
     }
 }

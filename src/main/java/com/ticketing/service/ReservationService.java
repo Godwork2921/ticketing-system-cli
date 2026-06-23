@@ -20,6 +20,7 @@ public class ReservationService {
     private final PricingService pricingService = new PricingService();
     private final EventService eventService = new EventService();
 
+    // ========================= MAIN FLOW =========================
     public void reserveSeat(String email,
                             Long eventId,
                             Long seatId) {
@@ -27,16 +28,15 @@ public class ReservationService {
         Connection conn = null;
 
         try {
-
             conn = DBConnection.getConnection();
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // 🔥 START TRANSACTION
 
             // 1. Validate seat belongs to event
             if (!seatDAO.existsInEvent(eventId, seatId)) {
                 throw new RuntimeException("Seat does not belong to event");
             }
 
-            // 2. LOCK SEAT (VERY IMPORTANT)
+            // 2. LOCK SEAT (prevent race condition)
             Seat seat = seatDAO.findByIdForUpdate(seatId);
 
             if (seat == null) {
@@ -47,15 +47,19 @@ public class ReservationService {
                 throw new RuntimeException("Seat already reserved");
             }
 
-            // 3. Idempotency check
+            // 3. IDEMPOTENCY CHECK (prevent duplicate booking)
             if (reservationDAO.exists(email, eventId, seatId)) {
-                throw new RuntimeException("Reservation already exists!");
+                throw new RuntimeException("Reservation already exists");
             }
 
-            // 4. Get event
+            // 4. Load event
             Event event = eventService.findById(eventId);
 
-            // 5. Pricing (INSIDE TRANSACTION)
+            if (event == null) {
+                throw new RuntimeException("Event not found");
+            }
+
+            // 5. Calculate final price (STRATEGY PATTERN)
             double finalPrice = pricingService.calculateFinalPrice(
                     event,
                     seat,
@@ -84,27 +88,32 @@ public class ReservationService {
             // 9. COMMIT
             conn.commit();
 
+            System.out.println("[SUCCESS] Reservation completed");
+
         } catch (Exception e) {
 
-            try {
-                if (conn != null) {
+            // 🔥 ROLLBACK ON FAILURE
+            if (conn != null) {
+                try {
                     conn.rollback();
+                } catch (Exception rollbackEx) {
+                    throw new RuntimeException("Rollback failed", rollbackEx);
                 }
-            } catch (Exception rollbackEx) {
-                throw new RuntimeException("Rollback failed", rollbackEx);
             }
 
             throw new RuntimeException("Reservation failed: " + e.getMessage(), e);
 
         } finally {
 
-            try {
-                if (conn != null) {
+            if (conn != null) {
+                try {
                     conn.close();
-                }
-            } catch (Exception ignored) {}
+                } catch (Exception ignored) {}
+            }
         }
     }
+
+    // ========================= READ OPERATIONS =========================
 
     public List<Reservation> getAllReservations() {
         return reservationDAO.findAll();
@@ -117,23 +126,22 @@ public class ReservationService {
                 .toList();
     }
 
+    public Reservation findById(Long id) {
+        return reservationDAO.findById(id);
+    }
+
+    // ========================= CANCEL =========================
+
     public boolean cancelReservation(Long reservationId) {
 
         Reservation reservation = reservationDAO.findById(reservationId);
 
         if (reservation == null) {
-            throw new RuntimeException("Reservation not found.");
+            throw new RuntimeException("Reservation not found");
         }
 
-        seatDAO.updateStatus(
-                reservation.getSeatId(),
-                SeatStatus.AVAILABLE
-        );
+        seatDAO.updateStatus(reservation.getSeatId(), SeatStatus.AVAILABLE);
 
         return reservationDAO.cancel(reservationId);
-    }
-
-    public Reservation findById(Long id) {
-        return reservationDAO.findById(id);
     }
 }

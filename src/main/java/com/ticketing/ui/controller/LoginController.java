@@ -1,29 +1,21 @@
 package com.ticketing.ui.controller;
 
+import com.ticketing.enums.Role;
 import com.ticketing.model.User;
 import com.ticketing.service.UserService;
 import com.ticketing.session.Session;
 
 public class LoginController {
 
-    private final UserService userService =
-            new UserService();
+    private final UserService userService = new UserService();
 
-    public User login(
-            String email,
-            String password
-    ) {
+    public User login(String email, String password) {
 
-        User user =
-                userService.findByEmail(email);
+        User user = userService.findByEmail(email);
 
-        if (user == null) {
-            return null;
-        }
+        if (user == null) return null;
 
-        if (!user.getPassword().equals(password)) {
-            return null;
-        }
+        if (!user.getPassword().equals(password)) return null;
 
         Session.setCurrentUser(user);
 
@@ -37,14 +29,14 @@ public class LoginController {
             String password
     ) {
 
-        User user =
-                new User(
-                        id,
-                        name,
-                        email,
-                        password,
-                        com.ticketing.enums.Role.CUSTOMER
-                );
+        // ✅ FIXED ORDER: role BEFORE password
+        User user = new User(
+                id,
+                name,
+                email,
+                Role.CUSTOMER,
+                password
+        );
 
         userService.registerUser(user);
     }

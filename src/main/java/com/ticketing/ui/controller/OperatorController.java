@@ -13,33 +13,22 @@ import java.util.List;
 
 public class OperatorController {
 
-    public void createVenue(
-            Long venueId,
-            String venueName,
-            String address,
-            String timezone
-    ) {
+    public void createVenue(Long venueId, String venueName, String address, String timezone) {
 
-        Venue venue =
-                new Venue(
-                        venueId,
-                        venueName,
-                        address,
-                        timezone
-                );
-
-        AppContext.venueService
-                .addVenue(venue);
-
-        System.out.println(
-                "Venue created successfully."
+        Venue venue = new Venue(
+                venueId,
+                venueName,
+                address,
+                timezone
         );
+
+        AppContext.venueService.addVenue(venue);
+
+        System.out.println("Venue created successfully.");
     }
 
     public void listVenues() {
-
-        AppContext.venueService
-                .getAllVenues()
+        AppContext.venueService.getAllVenues()
                 .forEach(System.out::println);
     }
 
@@ -50,46 +39,34 @@ public class OperatorController {
             double basePrice,
             LocalDateTime startTime,
             LocalDateTime endTime
-
     ) {
 
         if (startTime.isAfter(endTime)) {
-
-            System.out.println(
-                    "Invalid time range."
-            );
-
+            System.out.println("Invalid time range.");
             return;
         }
 
-        Venue venue =
-                AppContext.venueService
-                        .findVenueById(venueId);
+        Venue venue = AppContext.venueService.findVenueById(venueId);
 
-        Event event =
-                new Event(
-                        eventId,
-                        title,
-                        venue,
-                        basePrice,
-                        startTime,
-                        endTime,
-                        EventStatus.ACTIVE,
-                        new ArrayList<>()
-                );
-
-        AppContext.eventService
-                .createEvent(event);
-
-        System.out.println(
-                "Event created successfully."
+        // ✅ FIXED ORDER
+        Event event = new Event(
+                eventId,
+                title,
+                venue,
+                startTime,
+                endTime,
+                basePrice,
+                EventStatus.ACTIVE,
+                new ArrayList<>()
         );
+
+        AppContext.eventService.createEvent(event);
+
+        System.out.println("Event created successfully.");
     }
 
     public void listEvents() {
-
-        AppContext.eventService
-                .getAllEvents()
+        AppContext.eventService.getAllEvents()
                 .forEach(System.out::println);
     }
 
@@ -101,36 +78,24 @@ public class OperatorController {
             int seatNumber
     ) {
 
-        Event event =
-                AppContext.eventService
-                        .findById(eventId);
+        Event event = AppContext.eventService.findById(eventId);
 
         if (event == null) {
-
-            throw new RuntimeException(
-                    "Event not found."
-            );
+            throw new RuntimeException("Event not found.");
         }
 
-        Seat seat =
-                new Seat(
-                        seatId,
-                        eventId,
-                        section,
-                        row,
-                        seatNumber,
-                        SeatStatus.AVAILABLE
-                );
-
-        AppContext.seatService
-                .createSeat(
-                        eventId,
-                        seat
-                );
-
-        System.out.println(
-                "Seat added successfully."
+        Seat seat = new Seat(
+                seatId,
+                eventId,
+                section,
+                row,
+                seatNumber,
+                SeatStatus.AVAILABLE
         );
+
+        AppContext.seatService.createSeat(eventId, seat);
+
+        System.out.println("Seat added successfully.");
     }
 
     public void viewAllAvailableSeats(Long eventId) {
