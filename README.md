@@ -1,340 +1,277 @@
-# Ticketing System CLI
+# 🎟️ Ticketing System CLI
 
-A Java-based Command Line Interface (CLI) application for managing venues, events, seats, and reservations. The project was developed as part of a backend engineering learning challenge to practice Java fundamentals, Object-Oriented Programming, Collections, Exception Handling, JSON processing, database persistence, and automated testing.
+A Java-based Command Line Interface (CLI) application for managing venues, events, seats, and reservations.
 
----
-
-# Overview
-
-This application allows administrators to create venues, events, and seats, while customers can reserve seats, view reservations, and cancel reservations.
-
-The system supports:
-
-* User authentication
-* Role-based access (Admin & Customer)
-* PostgreSQL database persistence
-* JSON import/export functionality
-* Reservation management
-* Automated testing using JUnit
+This project was developed as a backend engineering learning challenge to practice:
+- Object-Oriented Programming (OOP)
+- Design Patterns (Factory, Strategy)
+- Data Validation
+- Concurrency Control
+- Idempotency
+- Caching
+- Database Persistence (PostgreSQL)
+- JSON Import/Export
+- Unit Testing (JUnit 5)
 
 ---
 
-# Features
+## 📌 Overview
 
-## User Management
+The Ticketing System CLI simulates a real-world event booking platform.
 
-* User registration
-* User login
-* Role-based access control
+### System Roles:
+- 👨‍💼 Operator/Admin: manages venues, events, and seats
+- 👤 Customer: reserves and manages tickets
 
-## Venue Management
-
-* Create venues
-* View venues
-
-## Event Management
-
-* Create events
-* View events
-* Associate events with venues
-
-## Seat Management
-
-* Add seats to events
-* View available seats
-* View reserved seats
-
-## Reservation Management
-
-* Reserve seats
-* Cancel reservations
-* View reservations
-* Prevent double-booking
-
-## Data Persistence
-
-* PostgreSQL database storage
-* JSON export
-* JSON import
-
-## Testing
-
-* Unit tests using JUnit 5
-* Service layer testing
-* Reservation validation testing
+The system ensures:
+- No double booking
+- Safe concurrent reservations
+- Accurate pricing calculation
+- Persistent data storage
 
 ---
 
-# Technologies Used
+## 🚀 Features
 
-* Java 24
-* Maven
-* PostgreSQL
-* Jackson Databind
-* Jackson JSR310 (Java Time API Support)
-* JUnit 5
-* Git
-* GitHub
+### 👤 User Management
+- User registration
+- Login system
+- Role-based access control
 
 ---
 
-# Project Structure
+### 🏟️ Venue Management
+- Create venues
+- List venues
+- Store address and timezone
 
-```text
+---
+
+### 🎫 Event Management
+- Create events linked to venues
+- View events
+- Prevent time conflicts
+- Event status tracking (ACTIVE / CANCELLED / COMPLETED)
+
+---
+
+### 💺 Seat Management
+- Add seats to events
+- VIP / REGULAR classification
+- Row-based seating system
+- View available & reserved seats
+
+---
+
+### 📅 Reservation System
+- Reserve seats
+- Cancel reservations
+- View reservation history
+- Prevent duplicate bookings (idempotency)
+
+---
+
+### ⚡ Concurrency Control
+- Transaction-based booking system
+- Row-level locking (`SELECT FOR UPDATE`)
+- Prevent race conditions during seat reservation
+
+---
+
+### 🔁 Idempotency
+Prevents duplicate reservations using:
+
+email + eventId + seatId
+
+
+---
+
+### 💰 Pricing System (Strategy Pattern)
+Dynamic pricing strategies:
+
+- Base pricing
+- VIP pricing
+- Early bird discounts
+- Time-based pricing
+
+---
+
+### 🏭 Factory Pattern
+Used for object creation:
+
+- EventFactory
+- SeatFactory
+- UserFactory
+- PricingStrategyFactory
+
+---
+
+### ⚡ Caching System
+In-memory caching layer to reduce database calls:
+
+- EventCache
+- UserCache
+- VenueCache
+- SeatCache
+
+---
+
+### 📦 Data Validation
+Input validation includes:
+
+- ID validation
+- Name validation
+- Address validation
+- Time validation
+- Price validation
+- Timezone validation
+
+---
+
+### 📤 JSON Import / Export
+- Export system data to JSON files
+- Import data from backups
+- Supports system recovery and migration
+
+---
+
+### 🧪 Testing
+- JUnit 5 tests
+- Service layer testing
+- Reservation validation tests
+
+---
+
+## 🧱 Project Structure
+
+
 src
 ├── main
-│   └── java
-│       └── com.ticketing
-│           ├── dao
-│           ├── database
-│           ├── enums
-│           ├── exception
-│           ├── model
-│           ├── repository
-│           ├── service
-│           ├── session
-│           ├── storage
-│           ├── ui
-│           └── util
+│ └── java/com/ticketing
+│ ├── dao
+│ ├── database
+│ ├── dto
+│ ├── enums
+│ ├── exception
+│ ├── factory
+│ ├── model
+│ ├── service
+│ ├── strategy
+│ ├── cache
+│ ├── storage
+│ ├── ui
+│ ├── controller
+│ └── util
 │
 └── test
-    └── java
-        └── service
-```
+└── java
+
 
 ---
 
-# Database Tables
+## 🛠️ Technologies Used
 
-The application uses PostgreSQL and contains the following tables:
-
-* users
-* venues
-* events
-* seats
-* reservations
-
----
-
-# Setup Instructions
-
-## Prerequisites
-
-Install the following:
-
-* Java JDK 24
-* Maven
-* PostgreSQL
-* Git
-
-Verify installation:
-
-```bash
-java --version
-mvn --version
-psql --version
-```
+- Java 24
+- Maven
+- PostgreSQL
+- JDBC
+- Jackson (JSON Processing)
+- Jackson JSR310 (LocalDateTime support)
+- JUnit 5
+- BCrypt
+- Git & GitHub
 
 ---
 
-## Clone Repository
+## ⚙️ Setup Instructions
+
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/Godwork2921/ticketing-system-cli.git
-
 cd ticketing-system-cli
-```
+2. Configure Database
 
----
+Create PostgreSQL database:
 
-## Configure Database
-
-Create a PostgreSQL database:
-
-```sql
 CREATE DATABASE ticketing_system;
-```
 
-Update database credentials in:
+Update DB credentials:
 
-```text
 src/main/java/com/ticketing/database/DBConnection.java
-```
 
 Example:
 
-```java
-private static final String URL =
-    "jdbc:postgresql://localhost:5432/ticketing_system";
-
-private static final String USER = "postgres";
-
-private static final String PASSWORD = "your_password";
-```
-
----
-
-## Build Project
-
-```bash
+jdbc:postgresql://localhost:5432/ticketing_system
+username: postgres
+password: your_password
+3. Build Project
 mvn clean install
-```
-
----
-
-## Run Application
-
-```bash
+4. Run Application
 mvn exec:java
-```
 
-or
+OR
 
-```bash
 java -cp target/classes com.ticketing.Main
-```
-
----
-
-# Running Tests
-
-Run all tests:
-
-```bash
-mvn test
-```
-
-Sample output:
-
-```text
-Tests run: 10
-Failures: 0
-Errors: 0
-Skipped: 0
-
-BUILD SUCCESS
-```
-
----
-
-# JSON Files
-
-The application supports exporting and importing data using:
-
-```text
+📂 Database Tables
+users
+venues
+events
+seats
+reservations
+📤 JSON Export Files
 users.json
 venues.json
 events.json
 seats.json
 reservations.json
-```
+🧠 Architecture Overview
+Layered Architecture
+Controller → Service → DAO → Database
+Design Patterns Used
+🏭 Factory Pattern
 
-These files are generated in the project root directory.
+Used for object creation (Event, User, Seat, Pricing)
 
----
+🎯 Strategy Pattern
 
-# Design Notes
+Used for pricing logic:
 
-The application follows a layered architecture:
-
-## Model Layer
-
-Represents domain entities:
-
-* User
-* Venue
-* Event
-* Seat
-* Reservation
-
-## DAO Layer
-
-Responsible for database access and CRUD operations.
-
-Examples:
-
-* UserDAO
-* EventDAO
-* SeatDAO
-* ReservationDAO
-
-## Service Layer
-
-Contains business logic and validation.
-
-Examples:
-
-* AuthService
-* EventService
-* SeatService
-* ReservationService
-
-## Storage Layer
-
-Handles JSON export and import operations.
-
-Examples:
-
-* JsonExporter
-* JsonImporter
-* JsonStorageService
-
-## UI Layer
-
-Provides command-line interaction through menus and controllers.
-
----
-
-# Assumptions
-
-The following assumptions were made during development:
-
-* Each seat belongs to exactly one event.
-* A seat cannot be reserved more than once simultaneously.
-* Reservations require a valid customer account.
-* Events must be associated with an existing venue.
-* JSON files are assumed to contain valid data structures.
-* PostgreSQL is available and configured correctly before application startup.
-
----
-
-# Challenges Encountered
-
-During development, the following challenges were addressed:
-
-* Preventing duplicate seat reservations.
-* Synchronizing JSON export/import with database records.
-* Handling LocalDateTime serialization and deserialization using Jackson.
-* Managing relationships between events, venues, seats, and reservations.
-* Creating automated tests for service-layer functionality.
-
----
-
-# Future Improvements
-
-Planned future enhancements include:
-
-* Spring Boot migration
-* REST API development
-* Docker containerization
-* JWT authentication
-* Kafka integration
-* Keycloak integration
-* MinIO integration
-* Concurrency handling
-* Audit logging
-* Monitoring and observability tooling
-
----
-
-# Test Results
-
-Current automated test status:
-
-* Total Tests: 10
-* Failures: 0
-* Errors: 0
-* Status: PASSING
-
----
-
+VIP Pricing
+Early Bird
+Standard Pricing
+⚡ Concurrency Control
+Transaction management
+Row-level locking
+🔁 Idempotency
+Prevent duplicate reservations
+⚠️ Assumptions
+Each seat belongs to one event only
+A seat cannot be reserved twice
+Events must belong to a venue
+Valid JSON structure is required
+PostgreSQL is configured before startup
+🚧 Challenges Solved
+Race condition handling in reservations
+Event time overlap detection
+Complex object relationships
+JSON + database synchronization
+Service layer testing
+🚀 Future Improvements
+Spring Boot migration
+REST API development
+JWT authentication
+Redis caching
+Kafka event streaming
+Docker containerization
+Monitoring & logging system
+📊 Project Status
+Feature	Status
+OOP Design	✅ Done
+Factory Pattern	✅ Done
+Strategy Pattern	✅ Done
+Concurrency	✅ Done
+Idempotency	✅ Done
+Caching	 ✅ Done
+Validation	✅ Done
+Lombok	✅ Done
