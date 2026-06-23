@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SeatDAO {
-    
+
     /**
      * Save seat for an event
      */
@@ -317,6 +317,36 @@ public class SeatDAO {
                         rs.getString("status")
                 )
         );
+    }
+
+    public Seat findByIdForUpdate(Long id) {
+
+        String sql = """
+        SELECT * FROM seats
+        WHERE id = ?
+        FOR UPDATE
+    """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false); // IMPORTANT for locking
+
+            ps.setLong(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+
+            conn.commit();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to lock seat", e);
+        }
+
+        return null;
     }
 
     public boolean updateStatus(
