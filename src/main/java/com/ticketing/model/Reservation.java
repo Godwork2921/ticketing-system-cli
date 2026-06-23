@@ -11,10 +11,7 @@ public class Reservation {
     private String customerEmail;
     private Long eventId;
     private Long seatId;
-
-    // NEW
     private double finalPrice;
-
     private ReservationStatus status;
     private LocalDateTime createdAt;
 
@@ -136,26 +133,24 @@ public class Reservation {
 
     @Override
     public String toString() {
-
         return """
-                Reservation
-                ------------------------
-                ID: %d
-                Customer: %s
-                Event ID: %d
-                Seat ID: %d
-                Final Price: %.2f
-                Status: %s
-                Created At: %s
-                """
-                .formatted(
-                        id,
-                        customerEmail,
-                        eventId,
-                        seatId,
-                        finalPrice,
-                        status,
-                        createdAt
-                );
+            Reservation
+            ------------------------
+            ID: %d
+            Customer: %s
+            Event ID: %d
+            Seat ID: %d
+            Final Price: %.2f
+            Status: %s
+            Created At: %s
+            """.formatted(
+                id,
+                customerEmail,
+                eventId,
+                seatId,
+                finalPrice,
+                status,
+                createdAt
+        );
     }
 }

@@ -10,7 +10,8 @@ public class UserCache {
     private static final Map<String, User> CACHE =
             new HashMap<>();
 
-    private UserCache() {}
+    private UserCache() {
+    }
 
     public static User get(String email) {
         return CACHE.get(email);
@@ -19,7 +20,16 @@ public class UserCache {
     public static void put(User user) {
 
         if (user != null) {
-            CACHE.put(user.getEmail(), user);
+
+            CACHE.put(
+                    user.getEmail(),
+                    user
+            );
+
+            System.out.println(
+                    "[CACHE STORE] " +
+                            user.getEmail()
+            );
         }
     }
 

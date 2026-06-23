@@ -47,8 +47,10 @@ public class OperatorController {
             Long eventId,
             String title,
             Long venueId,
+            double basePrice,
             LocalDateTime startTime,
             LocalDateTime endTime
+
     ) {
 
         if (startTime.isAfter(endTime)) {
@@ -69,6 +71,7 @@ public class OperatorController {
                         eventId,
                         title,
                         venue,
+                        basePrice,
                         startTime,
                         endTime,
                         EventStatus.ACTIVE,

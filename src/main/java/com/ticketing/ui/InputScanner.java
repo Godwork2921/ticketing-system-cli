@@ -30,6 +30,22 @@ public class InputScanner {
             }
         }
     }
+    public static double nextDouble() {
+
+        while (true) {
+
+            try {
+
+                return Double.parseDouble(scanner.nextLine());
+
+            } catch (NumberFormatException e) {
+
+                System.out.print(
+                        "Invalid number. Try again: "
+                );
+            }
+        }
+    }
 
     public static long nextLong() {
 

@@ -261,6 +261,33 @@ public class OperatorMenu {
             }
         }
 
+        double basePrice;
+
+        while (true) {
+
+            try {
+
+                System.out.print("Base Price: ");
+
+                basePrice = InputScanner.nextDouble();
+
+                if (basePrice > 0) {
+                    break;
+                }
+
+                System.out.println(
+                        "Price must be greater than 0."
+                );
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Enter a valid price."
+                );
+
+                InputScanner.nextLine();
+            }
+        }
 
 
         // =========================
@@ -321,7 +348,7 @@ public class OperatorMenu {
         // =========================
         // CREATE EVENT
         // =========================
-        controller.createEvent(eventId, title, venueId, start, end);
+        controller.createEvent(eventId, title, venueId,basePrice,start, end);
 
         System.out.println("Event created successfully!");
     }
