@@ -19,9 +19,10 @@ public class EventDAO {
     public void save(Event event) {
 
         String sql = """
-            INSERT INTO events
-            (id, title, venue_id, start_time, end_time, status)
-            VALUES (?, ?, ?, ?, ?, ?)
+            
+                INSERT INTO events
+            (id, title, venue_id, base_price, start_time, end_time, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (
@@ -33,22 +34,10 @@ public class EventDAO {
             ps.setLong(1, event.getId());
             ps.setString(2, event.getTitle());
             ps.setLong(3, event.getVenue().getId());
-            ps.setTimestamp(
-                    4,
-                    Timestamp.valueOf(
-                            event.getStartTime()
-                    )
-            );
-            ps.setTimestamp(
-                    5,
-                    Timestamp.valueOf(
-                            event.getEndTime()
-                    )
-            );
-            ps.setString(
-                    6,
-                    event.getStatus().name()
-            );
+            ps.setDouble(4, event.getBasePrice());
+            ps.setTimestamp(5, Timestamp.valueOf(event.getStartTime()));
+            ps.setTimestamp(6, Timestamp.valueOf(event.getEndTime()));
+            ps.setString(7, event.getStatus().name());
 
             ps.executeUpdate();
 
@@ -95,6 +84,7 @@ public class EventDAO {
                                 rs.getLong("id"),
                                 rs.getString("title"),
                                 venue,
+                                rs.getDouble("base_price"),
                                 rs.getTimestamp("start_time")
                                         .toLocalDateTime(),
                                 rs.getTimestamp("end_time")
@@ -166,6 +156,7 @@ public class EventDAO {
                                     rs.getLong("id"),
                                     rs.getString("title"),
                                     venue,
+                                    rs.getDouble("base_price"),
                                     rs.getTimestamp("start_time")
                                             .toLocalDateTime(),
                                     rs.getTimestamp("end_time")
@@ -224,6 +215,7 @@ public class EventDAO {
                                     rs.getLong("id"),
                                     rs.getString("title"),
                                     venue,
+                                    rs.getDouble("base_price"),
                                     rs.getTimestamp("start_time")
                                             .toLocalDateTime(),
                                     rs.getTimestamp("end_time")
@@ -302,10 +294,11 @@ public class EventDAO {
 
     public boolean update(Event event) {
 
-        String sql = """
-            UPDATE events
+        String sql = """  
+                UPDATE events
             SET title = ?,
                 venue_id = ?,
+                base_price = ?,
                 start_time = ?,
                 end_time = ?,
                 status = ?
@@ -320,26 +313,11 @@ public class EventDAO {
 
             ps.setString(1, event.getTitle());
             ps.setLong(2, event.getVenue().getId());
-            ps.setTimestamp(
-                    3,
-                    Timestamp.valueOf(
-                            event.getStartTime()
-                    )
-            );
-            ps.setTimestamp(
-                    4,
-                    Timestamp.valueOf(
-                            event.getEndTime()
-                    )
-            );
-            ps.setString(
-                    5,
-                    event.getStatus().name()
-            );
-            ps.setLong(
-                    6,
-                    event.getId()
-            );
+            ps.setDouble(3, event.getBasePrice());
+            ps.setTimestamp(4, Timestamp.valueOf(event.getStartTime()));
+            ps.setTimestamp(5, Timestamp.valueOf(event.getEndTime()));
+            ps.setString(6, event.getStatus().name());
+            ps.setLong(7, event.getId());
 
             if (ps.executeUpdate() > 0) {
 

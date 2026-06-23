@@ -4,6 +4,7 @@ import com.ticketing.dao.ReservationDAO;
 import com.ticketing.dao.SeatDAO;
 import com.ticketing.enums.ReservationStatus;
 import com.ticketing.enums.SeatStatus;
+import com.ticketing.model.Event;
 import com.ticketing.model.Reservation;
 import com.ticketing.model.Seat;
 
@@ -14,53 +15,48 @@ public class ReservationService {
 
     private final ReservationDAO reservationDAO = new ReservationDAO();
     private final SeatDAO seatDAO = new SeatDAO();
-
+    private final PricingService pricingService = new PricingService();
+    private final EventService eventService = new EventService();
     public void reserveSeat(String email,
                             Long eventId,
                             Long seatId) {
 
-        // 1. validate seat belongs to event
         if (!seatDAO.existsInEvent(eventId, seatId)) {
             throw new RuntimeException("Seat does not belong to event");
         }
 
-        try {
+        Seat seat = seatDAO.findByIdForUpdate(seatId);
 
-            // 2. LOCK seat (CRITICAL)
-            Seat seat = seatDAO.findByIdForUpdate(seatId);
-
-            if (seat == null) {
-                throw new RuntimeException("Seat not found");
-            }
-
-            // 3. check availability
-            if (seat.getStatus() != SeatStatus.AVAILABLE) {
-                throw new RuntimeException("Seat already reserved");
-            }
-
-            // 4. idempotency check
-            if (reservationDAO.exists(email, eventId, seatId)) {
-                throw new RuntimeException("Reservation already exists!");
-            }
-
-            // 5. create reservation
-            Reservation reservation = new Reservation(
-                    email,
-                    eventId,
-                    seatId,
-                    ReservationStatus.CONFIRMED,
-                    LocalDateTime.now()
-            );
-
-            // 6. save reservation
-            reservationDAO.save(reservation);
-
-            // 7. update seat
-            seatDAO.updateStatus(seatId, SeatStatus.RESERVED);
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (seat.getStatus() != SeatStatus.AVAILABLE) {
+            throw new RuntimeException("Seat already reserved");
         }
+
+        if (reservationDAO.exists(email, eventId, seatId)) {
+            throw new RuntimeException("Reservation already exists!");
+        }
+
+        Event event = eventService.findById(eventId);
+
+        // 💰 CALCULATE FINAL PRICE
+        double finalPrice = pricingService.calculateFinalPrice(
+                event,
+                seat,
+                LocalDateTime.now()
+        );
+
+        Reservation reservation = new Reservation(
+                email,
+                eventId,
+                seatId,
+                ReservationStatus.CONFIRMED,
+                LocalDateTime.now()
+        );
+
+        reservation.setFinalPrice(finalPrice); // ⭐ SAVE PRICE
+
+        reservationDAO.save(reservation);
+
+        seatDAO.updateStatus(seatId, SeatStatus.RESERVED);
     }
 
     public List<Reservation> getAllReservations() {

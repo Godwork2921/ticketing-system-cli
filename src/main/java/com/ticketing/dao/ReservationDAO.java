@@ -14,10 +14,15 @@ public class ReservationDAO {
     public void save(Reservation reservation) {
 
         String sql = """
-            INSERT INTO reservations
-            (customer_email, event_id, seat_id, status, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """;
+    INSERT INTO reservations
+    (customer_email,
+     event_id,
+     seat_id,
+     final_price,
+     status,
+     created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+""";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -25,8 +30,12 @@ public class ReservationDAO {
             ps.setString(1, reservation.getCustomerEmail());
             ps.setLong(2, reservation.getEventId());
             ps.setLong(3, reservation.getSeatId());
-            ps.setString(4, reservation.getStatus().name());
-            ps.setTimestamp(5, Timestamp.valueOf(reservation.getCreatedAt()));
+            ps.setDouble(4, reservation.getFinalPrice());
+            ps.setString(5, reservation.getStatus().name());
+            ps.setTimestamp(6,
+                    Timestamp.valueOf(
+                            reservation.getCreatedAt()
+                    ));
 
             ps.executeUpdate();
 
@@ -173,8 +182,21 @@ public class ReservationDAO {
         r.setCustomerEmail(rs.getString("customer_email"));
         r.setEventId(rs.getLong("event_id"));
         r.setSeatId(rs.getLong("seat_id"));
-        r.setStatus(ReservationStatus.valueOf(rs.getString("status")));
-        r.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+        r.setFinalPrice(
+                rs.getDouble("final_price")
+        );
+
+        r.setStatus(
+                ReservationStatus.valueOf(
+                        rs.getString("status")
+                )
+        );
+
+        r.setCreatedAt(
+                rs.getTimestamp("created_at")
+                        .toLocalDateTime()
+        );
 
         return r;
     }

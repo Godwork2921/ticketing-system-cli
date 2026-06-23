@@ -15,6 +15,7 @@ public class Event {
     private Venue venue;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private double basePrice;
     private EventStatus status;
     private List<Seat> seats = new ArrayList<>();
 
@@ -26,6 +27,7 @@ public class Event {
     public Event(Long id,
                  String title,
                  Venue venue,
+                 double basePrice,
                  LocalDateTime startTime,
                  LocalDateTime endTime,
                  EventStatus status,
@@ -37,10 +39,19 @@ public class Event {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
+        this.basePrice = basePrice;
         this.seats = seats;
     }
 
     // Getters & Setters
+
+    public double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(double basePrice) {
+        this.basePrice = basePrice;
+    }
 
     public Long getId() {
         return id;
@@ -143,10 +154,15 @@ public class Event {
 
     @Override
     public String toString() {
+
         return "Event{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
-                ", venue=" + (venue != null ? venue.getName() : "N/A") +
+                ", venue=" +
+                (venue != null
+                        ? venue.getName()
+                        : "N/A") +
+                ", basePrice=" + basePrice +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", status=" + status +

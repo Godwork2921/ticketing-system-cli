@@ -11,18 +11,24 @@ public class Reservation {
     private String customerEmail;
     private Long eventId;
     private Long seatId;
+
+    // NEW
+    private double finalPrice;
+
     private ReservationStatus status;
     private LocalDateTime createdAt;
 
-    // No-Args Constructor (required for Jackson)
-    public Reservation() {}
+    public Reservation() {
+    }
 
-    // Constructor for new reservation creation
-    public Reservation(String customerEmail,
-                       Long eventId,
-                       Long seatId,
-                       ReservationStatus status,
-                       LocalDateTime createdAt) {
+    public Reservation(
+            String customerEmail,
+            Long eventId,
+            Long seatId,
+            ReservationStatus status,
+            LocalDateTime createdAt
+    ) {
+
         this.customerEmail = customerEmail;
         this.eventId = eventId;
         this.seatId = seatId;
@@ -30,7 +36,9 @@ public class Reservation {
         this.createdAt = createdAt;
     }
 
-    // ================= GETTERS & SETTERS =================
+    // =========================
+    // GETTERS & SETTERS
+    // =========================
 
     public Long getId() {
         return id;
@@ -64,6 +72,14 @@ public class Reservation {
         this.seatId = seatId;
     }
 
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
+    }
+
     public ReservationStatus getStatus() {
         return status;
     }
@@ -80,23 +96,32 @@ public class Reservation {
         this.createdAt = createdAt;
     }
 
-    // ================= UNIQUE KEY (IMPORTANT FIX) =================
+    // =========================
+    // IDEMPOTENCY KEY
+    // =========================
 
     public String uniqueKey() {
-        return String.format("%s-%d-%d",
-                customerEmail == null ? "" : customerEmail.toLowerCase(),
+
+        return String.format(
+                "%s-%d-%d",
+                customerEmail == null
+                        ? ""
+                        : customerEmail.toLowerCase(),
                 eventId,
                 seatId
         );
     }
 
-    // ================= BUSINESS METHODS =================
+    // =========================
+    // BUSINESS METHODS
+    // =========================
 
     public boolean isConfirmed() {
         return status == ReservationStatus.CONFIRMED;
     }
 
     public boolean belongsToCustomer(String email) {
+
         return email != null &&
                 email.equalsIgnoreCase(customerEmail);
     }
@@ -105,10 +130,13 @@ public class Reservation {
         return Objects.equals(this.eventId, eventId);
     }
 
-    // ================= DISPLAY =================
+    // =========================
+    // DISPLAY
+    // =========================
 
     @Override
     public String toString() {
+
         return """
                 Reservation
                 ------------------------
@@ -116,15 +144,18 @@ public class Reservation {
                 Customer: %s
                 Event ID: %d
                 Seat ID: %d
+                Final Price: %.2f
                 Status: %s
                 Created At: %s
-                """.formatted(
-                id,
-                customerEmail,
-                eventId,
-                seatId,
-                status,
-                createdAt
-        );
+                """
+                .formatted(
+                        id,
+                        customerEmail,
+                        eventId,
+                        seatId,
+                        finalPrice,
+                        status,
+                        createdAt
+                );
     }
 }
