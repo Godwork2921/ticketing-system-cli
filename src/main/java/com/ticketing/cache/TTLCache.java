@@ -1,42 +1,60 @@
 package com.ticketing.cache;
 
 import java.time.Instant;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class TTLCache<K, V> {
 
-    private static class Entry<V> {
-        V value;
-        long expiry;
+    private final long ttlMillis;
 
-        Entry(V value, long ttlMillis) {
-            this.value = value;
-            this.expiry = System.currentTimeMillis() + ttlMillis;
-        }
+    private final Map<K, CacheItem<V>> cache;
+
+    public TTLCache(int maxSize, long ttlMillis) {
+
+        this.ttlMillis = ttlMillis;
+
+        this.cache = new LinkedHashMap<>(maxSize, 0.75f, true) {
+
+            protected boolean removeEldestEntry(Map.Entry<K, CacheItem<V>> eldest) {
+                return size() > maxSize;
+            }
+        };
     }
 
-    private final ConcurrentHashMap<K, Entry<V>> map = new ConcurrentHashMap<>();
-
-    public void put(K key, V value, long ttlMillis) {
-        map.put(key, new Entry<>(value, ttlMillis));
+    public synchronized void put(K key, V value) {
+        cache.put(key, new CacheItem<>(value));
     }
 
-    public V get(K key) {
-        Entry<V> entry = map.get(key);
+    public synchronized V get(K key) {
 
-        if (entry == null) return null;
+        CacheItem<V> item = cache.get(key);
 
-        if (System.currentTimeMillis() > entry.expiry) {
-            map.remove(key);
+        if (item == null) return null;
+
+        if (item.isExpired(ttlMillis)) {
+            cache.remove(key);
             return null;
         }
 
-        return entry.value;
+        return item.value;
     }
 
-    public void cleanUp() {
-        map.entrySet().removeIf(e ->
-                System.currentTimeMillis() > e.getValue().expiry
-        );
+    public synchronized void cleanUp() {
+        cache.entrySet().removeIf(e -> e.getValue().isExpired(ttlMillis));
+    }
+
+    private static class CacheItem<V> {
+
+        V value;
+        long createdAt = Instant.now().toEpochMilli();
+
+        CacheItem(V value) {
+            this.value = value;
+        }
+
+        boolean isExpired(long ttl) {
+            return Instant.now().toEpochMilli() - createdAt > ttl;
+        }
     }
 }

@@ -1,36 +1,11 @@
 [ {
   "id" : 1,
-  "name" : "hsdh",
-  "address" : "sywdy",
-  "timezone" : "4rrfygiojo8"
-}, {
-  "id" : 554,
-  "name" : "fjrfjrifj",
-  "address" : "736dhebeb",
-  "timezone" : "u37366362728892hfejsnc"
-}, {
-  "id" : 22,
-  "name" : "wwdkh",
-  "address" : "znxns2",
-  "timezone" : "Europe/London"
-}, {
-  "id" : 3,
-  "name" : "eradv",
-  "address" : "34e",
-  "timezone" : "Africa/Addis_Ababa"
-}, {
-  "id" : 23,
-  "name" : "esyh",
-  "address" : "gondar kebele16",
-  "timezone" : "Africa/Addis_Ababa"
-}, {
-  "id" : 12,
-  "name" : "dswwwdd",
-  "address" : "23wdecd",
-  "timezone" : "Europe/London"
+  "name" : "Test Venue",
+  "address" : "Addis",
+  "timezone" : "UTC"
 }, {
   "id" : 2,
-  "name" : "wee",
-  "address" : "wqw234",
+  "name" : "milinium",
+  "address" : "AA",
   "timezone" : "Africa/Addis_Ababa"
 } ]

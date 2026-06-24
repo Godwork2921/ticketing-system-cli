@@ -4,7 +4,7 @@ import com.ticketing.model.Event;
 import com.ticketing.service.EventService;
 import org.junit.jupiter.api.Test;
 import com.ticketing.database.DBConnection;
-import com.ticketing.util.TestDatabaseCleaner;
+import util.TestDatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import java.sql.Connection;
 import java.sql.Statement;

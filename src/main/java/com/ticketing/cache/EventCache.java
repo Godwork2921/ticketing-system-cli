@@ -2,42 +2,64 @@ package com.ticketing.cache;
 
 import com.ticketing.model.Event;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class EventCache {
 
-    // KEY = eventId
-    private static final Map<Long, Event> CACHE =
-            new HashMap<>();
+    private static final int MAX_SIZE = 100;
+    private static final long TTL =
+            5 * 60 * 1000; // 5 minutes
 
-    private EventCache() {}
+    private final Map<Long, CacheEntry<Event>> cache =
+            new LinkedHashMap<>(16, 0.75f, true) {
 
-    public static Event get(Long eventId) {
-        return CACHE.get(eventId);
+                @Override
+                protected boolean removeEldestEntry(
+                        Map.Entry<Long, CacheEntry<Event>> eldest) {
+
+                    return size() > MAX_SIZE;
+                }
+            };
+
+    public synchronized void put(
+            Long id,
+            Event event
+    ) {
+
+        cache.put(
+                id,
+                new CacheEntry<>(
+                        event,
+                        TTL
+                )
+        );
     }
 
-    public static void put(Event event) {
+    public synchronized Event get(Long id) {
 
-        if (event != null) {
+        CacheEntry<Event> entry =
+                cache.get(id);
 
-            CACHE.put(event.getId(), event);
-
-            System.out.println(
-                    "[CACHE STORE] Event " + event.getId()
-            );
+        if (entry == null) {
+            return null;
         }
+
+        if (entry.isExpired()) {
+
+            cache.remove(id);
+
+            return null;
+        }
+
+        return entry.getValue();
     }
 
-    public static void remove(Long eventId) {
-        CACHE.remove(eventId);
+    public synchronized void remove(Long id) {
+        cache.remove(id);
     }
 
-    public static void clear() {
-        CACHE.clear();
-    }
-
-    public static boolean contains(Long eventId) {
-        return CACHE.containsKey(eventId);
+    public synchronized int size() {
+        return cache.size();
     }
 }

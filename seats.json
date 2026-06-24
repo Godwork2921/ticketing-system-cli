@@ -1,46 +1,10 @@
 [ {
-  "id" : 123,
-  "eventId" : 1,
-  "section" : "vip",
-  "row" : "a",
-  "number" : 23,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "vip-a-23"
-}, {
-  "id" : 234,
-  "eventId" : 1,
-  "section" : "vip",
-  "row" : "s",
-  "number" : 344,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "vip-s-344"
-}, {
   "id" : 1,
   "eventId" : 1,
-  "section" : "aa",
-  "row" : "ww",
-  "number" : 3,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "aa-ww-3"
-}, {
-  "id" : 2,
-  "eventId" : 1,
-  "section" : "eztfzg",
-  "row" : "gvvgghhhhhhhhhhhhh",
-  "number" : 23,
-  "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "eztfzg-gvvgghhhhhhhhhhhhh-23"
-}, {
-  "id" : 3,
-  "eventId" : 1,
   "section" : "VIP",
-  "row" : "W",
-  "number" : 34,
+  "row" : "A",
+  "number" : 1,
   "status" : "AVAILABLE",
-  "available" : true,
-  "seatLabel" : "VIP-W-34"
+  "seatLabel" : "VIP-A-1",
+  "available" : true
 } ]

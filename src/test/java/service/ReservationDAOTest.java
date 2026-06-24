@@ -2,7 +2,7 @@ package service;
 
 import com.ticketing.database.DBConnection;
 import com.ticketing.service.ReservationService;
-import com.ticketing.util.TestDatabaseCleaner;
+import util.TestDatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.sql.Connection;

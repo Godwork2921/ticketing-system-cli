@@ -4,7 +4,7 @@ import com.ticketing.model.Seat;
 import com.ticketing.service.SeatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import com.ticketing.util.TestDatabaseCleaner;
+import util.TestDatabaseCleaner;
 
 import java.util.List;
 

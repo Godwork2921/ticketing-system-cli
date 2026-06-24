@@ -2,7 +2,7 @@ package service;
 
 import com.ticketing.database.DBConnection;
 import com.ticketing.service.AuthService;
-import com.ticketing.util.TestDatabaseCleaner;
+import util.TestDatabaseCleaner;
 import org.mindrot.jbcrypt.BCrypt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

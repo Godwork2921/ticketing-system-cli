@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SeatRaceTest {
+public class HoldExpiryTest {
 
     private SeatDAO seatDAO = new SeatDAO();
 
@@ -25,29 +25,28 @@ public class SeatRaceTest {
     }
 
     @Test
-    void onlyOneReservationShouldSucceed() throws Exception {
+    void stressTest100Users() throws Exception {
 
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-        CountDownLatch latch = new CountDownLatch(10);
+        ExecutorService executor = Executors.newFixedThreadPool(100);
+        CountDownLatch latch = new CountDownLatch(100);
         AtomicInteger success = new AtomicInteger();
 
         ReservationService service = new ReservationService();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
 
             int user = i;
 
             executor.submit(() -> {
                 try {
                     if (service.reserveSeat(
-                            "user" + user + "@mail.com",
+                            "u" + user + "@mail.com",
                             1L,
                             1L
                     )) {
                         success.incrementAndGet();
                     }
-                } catch (Exception e) {
-                    System.out.println("FAILED: " + e.getMessage());
+                } catch (Exception ignored) {
                 } finally {
                     latch.countDown();
                 }
@@ -57,6 +56,6 @@ public class SeatRaceTest {
         latch.await();
         executor.shutdown();
 
-        assertEquals(1, success.get(), "Only one reservation should succeed");
+        assertEquals(1, success.get());
     }
 }

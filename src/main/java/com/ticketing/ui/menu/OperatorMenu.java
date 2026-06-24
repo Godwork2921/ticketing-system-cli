@@ -1,6 +1,8 @@
 package com.ticketing.ui.menu;
+import java.sql.Connection;
 import java.time.ZoneId;
 import com.ticketing.dao.*;
+import com.ticketing.database.DBConnection;
 import com.ticketing.model.*;
 import com.ticketing.service.EventService;
 import com.ticketing.service.SeatService;
@@ -10,7 +12,7 @@ import com.ticketing.storage.JsonImporter;
 import com.ticketing.ui.InputScanner;
 import com.ticketing.ui.controller.OperatorController;
 import com.ticketing.util.ValidationUtil;
-
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -602,20 +604,30 @@ public class OperatorMenu {
                 .collect(java.util.stream.Collectors.toSet());
 
 // STEP 2: import safely (NO duplicates)
-        for (Reservation r : reservations) {
+        try {
+            Connection conn = DBConnection.getConnection();
 
-            System.out.println(
-                    "✔ ID: " + r.getId()
-                            + " | User: " + r.getCustomerEmail()
-                            + " | Event: " + r.getEventId()
-                            + " | Seat: " + r.getSeatId()
-                            + " | " + r.getStatus()
-            );
+            try (conn) {
 
-            if (!existingKeys.contains(r.uniqueKey())) {
-                reservationDAO.save(r);
-                existingKeys.add(r.uniqueKey()); // keep updated in memory
+                for (Reservation r : reservations) {
+
+                    System.out.println(
+                            "✔ ID: " + r.getId()
+                                    + " | User: " + r.getCustomerEmail()
+                                    + " | Event: " + r.getEventId()
+                                    + " | Seat: " + r.getSeatId()
+                                    + " | " + r.getStatus()
+                    );
+
+                    if (!existingKeys.contains(r.uniqueKey())) {
+                        reservationDAO.save(conn, r);
+                        existingKeys.add(r.uniqueKey());
+                    }
+                }
             }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
         System.out.println("\nDATABASE UPDATED SUCCESSFULLY\n");

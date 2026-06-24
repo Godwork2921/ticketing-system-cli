@@ -4,7 +4,7 @@ import com.ticketing.dao.SeatDAO;
 import com.ticketing.database.DBConnection;
 import com.ticketing.enums.SeatStatus;
 import com.ticketing.model.Seat;
-import com.ticketing.util.TestDatabaseCleaner;
+import util.TestDatabaseCleaner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,48 +19,31 @@ class SeatDAOTest {
 
     @BeforeEach
     void setup() {
+
         TestDatabaseCleaner.cleanAll();
 
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement()) {
 
-            // 1. VENUE FIRST
             st.executeUpdate("""
-            INSERT INTO venues (id, name, address, timezone)
-            VALUES (1, 'Test Venue', 'Addis', 'UTC')
-        """);
+                INSERT INTO venues (id, name, address, timezone)
+                VALUES (1, 'Test Venue', 'Addis', 'UTC')
+            """);
 
-            // 2. EVENT SECOND (must include ALL NOT NULL columns)
             st.executeUpdate("""
-            INSERT INTO events (
-                id, title, venue_id,
-                start_time, end_time, status
-            )
-            VALUES (
-                1,
-                'Test Event',
-                1,
-                NOW(),
-                NOW(),
-                'ACTIVE'
-            )
-        """);
-
-            // 3. SEAT LAST
-            st.executeUpdate("""
-            INSERT INTO seats (
-                id, event_id, section, row_name,
-                seat_number, status
-            )
-            VALUES (
-                1,
-                1,
-                'VIP',
-                'A',
-                1,
-                'AVAILABLE'
-            )
-        """);
+                INSERT INTO events (
+                    id, title, venue_id,
+                    start_time, end_time, status
+                )
+                VALUES (
+                    1,
+                    'Test Event',
+                    1,
+                    NOW(),
+                    NOW(),
+                    'ACTIVE'
+                )
+            """);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -70,23 +53,30 @@ class SeatDAOTest {
     @Test
     void shouldSaveAndRetrieveSeat() {
 
-        long eventId = 1000L;
-        long seatId = System.currentTimeMillis(); // unique
+        long seatId = 999L;
 
         Seat seat = new Seat(
                 seatId,
-                eventId,
+                1L,
                 "VIP",
                 "A",
                 1,
                 SeatStatus.AVAILABLE
-        );;
+        );
 
+        // SAVE
         dao.save(1L, seat);
 
-        Seat result = dao.findById(1L);
+        Seat result;
 
-        assertNotNull(result);
+        try (Connection conn = DBConnection.getConnection()) {
+            result = dao.findById(conn, seatId);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        assertNotNull(result, "Seat should not be null");
+        assertEquals(seatId, result.getId());
         assertEquals(1L, result.getEventId());
         assertEquals(SeatStatus.AVAILABLE, result.getStatus());
     }

@@ -1,33 +1,50 @@
 package com.ticketing.service;
 
 import com.ticketing.dao.SeatDAO;
-import com.ticketing.enums.SeatStatus;
+import com.ticketing.database.DBConnection;
 import com.ticketing.model.Seat;
 
+import java.sql.Connection;
 import java.util.List;
 
 public class SeatService {
 
+    private final SeatDAO seatDAO =
+            new SeatDAO();
 
-        private final SeatDAO seatDAO = new SeatDAO();
+    public void createSeat(Long eventId, Seat seat) {
 
-        public void createSeat(Long eventId, Seat seat) {
-            seatDAO.save(eventId, seat);
-        }
+        seatDAO.save(eventId, seat);
+    }
 
-        public Seat findById(Long id) {
-            return seatDAO.findById(id);
-        }
+    public Seat findById(Long id) {
 
-        public List<Seat> getSeatsByEvent(Long eventId) {
-            return seatDAO.findByEventId(eventId);
-        }
+        try (Connection conn =
+                     DBConnection.getConnection()) {
 
-        public List<Seat> getAvailableSeats(Long eventId) {
-            return seatDAO.findAvailableSeats(eventId);
-        }
+            return seatDAO.findById(
+                    conn,
+                    id
+            );
 
-        public List<Seat> getReservedSeats(Long eventId) {
-            return seatDAO.findReservedSeats(eventId);
+        } catch (Exception e) {
+
+            throw new RuntimeException(e);
         }
     }
+
+    public List<Seat> getSeatsByEvent(Long eventId) {
+
+        return seatDAO.findByEventId(eventId);
+    }
+
+    public List<Seat> getAvailableSeats(Long eventId) {
+
+        return seatDAO.findAvailableSeats(eventId);
+    }
+
+    public List<Seat> getReservedSeats(Long eventId) {
+
+        return seatDAO.findReservedSeats(eventId);
+    }
+}
