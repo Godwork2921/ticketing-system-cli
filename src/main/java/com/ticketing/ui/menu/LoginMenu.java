@@ -4,7 +4,6 @@ import com.ticketing.enums.Role;
 import com.ticketing.model.User;
 import com.ticketing.ui.InputScanner;
 import com.ticketing.ui.controller.LoginController;
-import org.mindrot.jbcrypt.BCrypt;
 public class LoginMenu {
 
     private final LoginController loginController = new LoginController();
@@ -159,24 +158,12 @@ public class LoginMenu {
                 );
             }
 
-// HASH AFTER VALIDATION
-            String hashedPassword =
-                    BCrypt.hashpw(password, BCrypt.gensalt());
-
-// REGISTER USER WITH HASHED PASSWORD
             loginController.registerCustomer(
                     null,
                     name,
                     email,
-                    hashedPassword
+                    password
             );
-
-//            loginController.registerCustomer(
-//                    null,
-//                    name,
-//                    email,
-//                    password
-//            );
 
             System.out.println("Registration successful!");
 

@@ -4,6 +4,7 @@ import com.ticketing.enums.Role;
 import com.ticketing.model.User;
 import com.ticketing.service.UserService;
 import com.ticketing.session.Session;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class LoginController {
 
@@ -15,7 +16,7 @@ public class LoginController {
 
         if (user == null) return null;
 
-        if (!user.getPassword().equals(password)) return null;
+        if (!BCrypt.checkpw(password, user.getPassword())) return null;
 
         Session.setCurrentUser(user);
 

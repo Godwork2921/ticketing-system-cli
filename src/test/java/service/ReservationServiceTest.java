@@ -28,7 +28,7 @@ public class ReservationServiceTest {
                 Connection conn = DBConnection.getConnection();
                 Statement st = conn.createStatement()
         ) {
-
+            // ✅ Insert with final_price and currency
             st.executeUpdate("""
                 INSERT INTO reservations (
                     id,
@@ -36,7 +36,9 @@ public class ReservationServiceTest {
                     event_id,
                     seat_id,
                     status,
-                    created_at
+                    created_at,
+                    final_price,
+                    currency
                 )
                 VALUES (
                     1,
@@ -44,7 +46,9 @@ public class ReservationServiceTest {
                     1,
                     1,
                     'CONFIRMED',
-                    NOW()
+                    NOW(),
+                    100.00,
+                    'USD'
                 )
             """);
 
@@ -55,7 +59,6 @@ public class ReservationServiceTest {
 
     @Test
     void shouldFindReservation() {
-
         Reservation reservation =
                 reservationService.findById(1L);
 
@@ -64,7 +67,6 @@ public class ReservationServiceTest {
 
     @Test
     void shouldReturnNullForMissingReservation() {
-
         Reservation reservation =
                 reservationService.findById(99999L);
 

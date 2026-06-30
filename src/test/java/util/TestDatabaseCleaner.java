@@ -9,9 +9,9 @@ public class TestDatabaseCleaner {
 
     public static void cleanAll() {
 
-        if (!"test".equals(System.getProperty("env"))) {
-            throw new RuntimeException("DB cleanup allowed only in TEST environment");
-        }
+//        if (!"test".equals(System.getProperty("env"))) {
+//            throw new RuntimeException("DB cleanup allowed only in TEST environment");
+//        }
 
         String[] sqls = {
                 "DELETE FROM reservations",

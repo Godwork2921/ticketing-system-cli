@@ -1,6 +1,7 @@
 package com.ticketing.strategy;
 
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 
 public class PricingContext {
 
@@ -10,7 +11,7 @@ public class PricingContext {
         this.strategy = strategy;
     }
 
-    public double calculate(Event event) {
+    public Money calculate(Event event) {
         if (strategy == null) {
             throw new IllegalStateException("Pricing strategy not set");
         }

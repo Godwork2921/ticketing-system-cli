@@ -10,125 +10,101 @@ import java.util.List;
 
 public class VenueDAO {
 
+    // =====================================================
+    // SAVE
+    // =====================================================
     public void save(Venue venue) {
 
         String sql = """
             INSERT INTO venues
-            (id, name, address, timezone)
-            VALUES (?, ?, ?, ?)
-            """;
+            (name, address, timezone)
+            VALUES (?, ?, ?)
+        """;
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setLong(1, venue.getId());
-            ps.setString(2, venue.getName());
-            ps.setString(3, venue.getAddress());
-            ps.setString(4, venue.getTimezone());
+            ps.setString(1, venue.getName());
+            ps.setString(2, venue.getAddress());
+            ps.setString(3, venue.getTimezone());
 
             ps.executeUpdate();
 
-            // Cache update
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    // no setter → ID should be set via constructor design
+                    long id = keys.getLong(1);
+                    // optional: recreate object or ignore in domain
+                }
+            }
+
             VenueCache.put(venue);
 
         } catch (SQLException e) {
-
-            throw new RuntimeException(
-                    "Failed to save venue",
-                    e
-            );
+            throw new RuntimeException("Failed to save venue", e);
         }
     }
 
+    // =====================================================
+    // FIND ALL
+    // =====================================================
     public List<Venue> findAll() {
 
         List<Venue> venues = new ArrayList<>();
 
         String sql = "SELECT * FROM venues";
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-
-                Venue venue =
-                        new Venue(
-                                rs.getLong("id"),
-                                rs.getString("name"),
-                                rs.getString("address"),
-                                rs.getString("timezone")
-                        );
-
-                venues.add(venue);
+                venues.add(mapRow(rs));
             }
 
         } catch (SQLException e) {
-
-            throw new RuntimeException(
-                    "Failed to load venues",
-                    e
-            );
+            throw new RuntimeException("Failed to load venues", e);
         }
 
         return venues;
     }
 
+    // =====================================================
+    // FIND BY ID (WITH CACHE)
+    // =====================================================
     public Venue findById(Long id) {
 
-        // Check cache first
-        Venue cachedVenue = VenueCache.get(id);
-
-        if (cachedVenue != null) {
-
-            System.out.println("[CACHE HIT] Venue");
-
-            return cachedVenue;
+        Venue cached = VenueCache.get(id);
+        if (cached != null) {
+            return cached;
         }
-        System.out.println("[CACHE MISS] Venue");
 
-        String sql =
-                "SELECT * FROM venues WHERE id = ?";
+        String sql = "SELECT * FROM venues WHERE id = ?";
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps =
-                        conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 if (rs.next()) {
 
-                    Venue venue =
-                            new Venue(
-                                    rs.getLong("id"),
-                                    rs.getString("name"),
-                                    rs.getString("address"),
-                                    rs.getString("timezone")
-                            );
-                    // Store in cache
+                    Venue venue = mapRow(rs);
                     VenueCache.put(venue);
                     return venue;
                 }
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Failed to find venue with ID: " + id,
-                    e
-            );
+            throw new RuntimeException("Failed to find venue", e);
         }
 
         return null;
     }
 
+    // =====================================================
+    // UPDATE
+    // =====================================================
     public boolean update(Venue venue) {
 
         String sql = """
@@ -137,65 +113,66 @@ public class VenueDAO {
                 address = ?,
                 timezone = ?
             WHERE id = ?
-            """;
+        """;
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps =
-                        conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, venue.getName());
             ps.setString(2, venue.getAddress());
             ps.setString(3, venue.getTimezone());
             ps.setLong(4, venue.getId());
 
-            if (ps.executeUpdate() > 0) {
+            int updated = ps.executeUpdate();
 
-                // Refresh cache
+            if (updated > 0) {
                 VenueCache.put(venue);
-
                 return true;
             }
 
             return false;
 
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Failed to update venue",
-                    e
-            );
+            throw new RuntimeException("Failed to update venue", e);
         }
     }
 
+    // =====================================================
+    // DELETE
+    // =====================================================
     public boolean delete(Long id) {
 
-        String sql =
-                "DELETE FROM venues WHERE id = ?";
+        String sql = "DELETE FROM venues WHERE id = ?";
 
-        try (
-                Connection conn = DBConnection.getConnection();
-                PreparedStatement ps =
-                        conn.prepareStatement(sql)
-        ) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setLong(1, id);
 
-            if (ps.executeUpdate() > 0) {
+            int deleted = ps.executeUpdate();
 
-                // Remove from cache
+            if (deleted > 0) {
                 VenueCache.remove(id);
-
                 return true;
             }
 
             return false;
 
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Failed to delete venue with ID: " + id,
-                    e
-            );
+            throw new RuntimeException("Failed to delete venue", e);
         }
+    }
+
+    // =====================================================
+    // MAPPER (IMPORTANT CLEAN DESIGN)
+    // =====================================================
+    private Venue mapRow(ResultSet rs) throws SQLException {
+
+        return new Venue(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("address"),
+                rs.getString("timezone")
+        );
     }
 }

@@ -184,9 +184,13 @@ public class OperatorMenu {
         controller.createVenue(id, name, address, timezone);
     }
 
+    public Venue findById(Long id) {
+        return venueDAO.findById(id);
+    }
+
     // =========================
-// EVENT
-// =========================
+    // EVENT
+    // =========================
     private void createEvent() {
 
         Long eventId;
@@ -195,6 +199,7 @@ public class OperatorMenu {
         // EVENT ID
         // =========================
         while (true) {
+
             try {
                 System.out.print("Event ID: ");
                 eventId = InputScanner.nextLong();
@@ -210,6 +215,7 @@ public class OperatorMenu {
                 }
 
                 break;
+
             } catch (Exception e) {
                 System.out.println("Enter a valid long number.");
                 InputScanner.nextLine();
@@ -220,13 +226,16 @@ public class OperatorMenu {
         // TITLE
         // =========================
         String title;
+
         while (true) {
+
             System.out.print("Title: ");
             title = InputScanner.nextLine();
 
             if (ValidationUtil.isValidEventTitle(title)) {
                 break;
             }
+
             System.out.println("Invalid title! Letters, numbers, spaces and '-' only.");
         }
 
@@ -234,7 +243,9 @@ public class OperatorMenu {
         // VENUE ID
         // =========================
         Long venueId;
+
         while (true) {
+
             try {
                 System.out.print("Venue ID: ");
                 venueId = InputScanner.nextLong();
@@ -250,6 +261,7 @@ public class OperatorMenu {
                 }
 
                 break;
+
             } catch (Exception e) {
                 System.out.println("Invalid Venue ID!");
                 InputScanner.nextLine();
@@ -260,7 +272,7 @@ public class OperatorMenu {
         // BASE PRICE (amount + currency)
         // =========================
         BigDecimal amount;
-        String currencyCode;
+        Currency currency;
         while (true) {
             try {
                 System.out.print("Base Price (numeric): ");
@@ -272,7 +284,8 @@ public class OperatorMenu {
                     continue;
                 }
 
-                InputScanner.nextLine(); // consume newline
+                // consume newline after nextDouble
+                InputScanner.nextLine();
                 break;
             } catch (Exception e) {
                 System.out.println("Enter a valid price.");
@@ -282,24 +295,29 @@ public class OperatorMenu {
 
         while (true) {
             System.out.print("Currency (ISO 4217 code, e.g., USD, ETB): ");
-            currencyCode = InputScanner.nextLine().trim().toUpperCase();
+            String currencyCode = InputScanner.nextLine().trim().toUpperCase();
             try {
-                java.util.Currency.getInstance(currencyCode);
+                currency = Currency.getInstance(currencyCode);
                 break;
             } catch (Exception e) {
                 System.out.println("Invalid currency code! Try again.");
             }
         }
 
+        Money basePrice = new Money(amount.setScale(2, java.math.RoundingMode.HALF_UP), currency);
+
         // =========================
         // START TIME
         // =========================
         LocalDateTime start;
+
         while (true) {
+
             try {
                 System.out.print("Start (yyyy-MM-ddTHH:mm): ");
                 start = LocalDateTime.parse(InputScanner.nextLine());
                 break;
+
             } catch (Exception e) {
                 System.out.println("Invalid date format!");
             }
@@ -309,7 +327,9 @@ public class OperatorMenu {
         // END TIME
         // =========================
         LocalDateTime end;
+
         while (true) {
+
             try {
                 System.out.print("End (yyyy-MM-ddTHH:mm): ");
                 end = LocalDateTime.parse(InputScanner.nextLine());
@@ -317,7 +337,9 @@ public class OperatorMenu {
                 if (end.isAfter(start)) {
                     break;
                 }
+
                 System.out.println("End time must be after start time!");
+
             } catch (Exception e) {
                 System.out.println("Invalid date format!");
             }
@@ -342,11 +364,10 @@ public class OperatorMenu {
         // =========================
         // CREATE EVENT
         // =========================
-        controller.createEvent(eventId, title, venueId, amount, currencyCode, start, end);
+        controller.createEvent(eventId, title, venueId, basePrice, start, end);
 
         System.out.println("Event created successfully!");
     }
-
 
     // =========================
     // SEAT

@@ -3,18 +3,20 @@ package com.ticketing.ui.controller;
 import com.ticketing.enums.EventStatus;
 import com.ticketing.enums.SeatStatus;
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 import com.ticketing.model.Seat;
 import com.ticketing.model.Venue;
 import com.ticketing.util.AppContext;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 
 public class OperatorController {
 
     public void createVenue(Long venueId, String venueName, String address, String timezone) {
-
         Venue venue = new Venue(
                 venueId,
                 venueName,
@@ -23,7 +25,6 @@ public class OperatorController {
         );
 
         AppContext.venueService.addVenue(venue);
-
         System.out.println("Venue created successfully.");
     }
 
@@ -36,38 +37,56 @@ public class OperatorController {
             Long eventId,
             String title,
             Long venueId,
-            double basePrice,
+            BigDecimal basePrice,
+            String currencyCode,
             LocalDateTime startTime,
             LocalDateTime endTime
     ) {
-
         if (startTime.isAfter(endTime)) {
             System.out.println("Invalid time range.");
             return;
         }
 
         Venue venue = AppContext.venueService.findVenueById(venueId);
+        if (venue == null) {
+            System.out.println("Venue not found.");
+            return;
+        }
 
-        // ✅ FIXED ORDER
+        Money money = new Money(basePrice, Currency.getInstance(currencyCode));
+
         Event event = new Event(
                 eventId,
                 title,
                 venue,
                 startTime,
                 endTime,
-                basePrice,
+                money,
                 EventStatus.ACTIVE,
                 new ArrayList<>()
         );
 
         AppContext.eventService.createEvent(event);
-
         System.out.println("Event created successfully.");
     }
 
     public void listEvents() {
-        AppContext.eventService.getAllEvents()
-                .forEach(System.out::println);
+        AppContext.eventService.getAllEvents().forEach(event -> {
+            int totalSeats = AppContext.seatService
+                    .getSeatsByEvent(event.getId())
+                    .size();
+
+            System.out.println(
+                    "Event(id=" + event.getId()
+                            + ", title=" + event.getTitle()
+                            + ", venue=" + event.getVenue().getName()
+                            + ", startTime=" + event.getStartTime()
+                            + ", endTime=" + event.getEndTime()
+                            + ", basePrice=" + event.getBasePrice()
+                            + ", status=" + event.getStatus()
+                            + ", totalSeats=" + totalSeats + ")"
+            );
+        });
     }
 
     public void createSeat(
@@ -77,7 +96,6 @@ public class OperatorController {
             String row,
             int seatNumber
     ) {
-
         Event event = AppContext.eventService.findById(eventId);
 
         if (event == null) {
@@ -94,12 +112,10 @@ public class OperatorController {
         );
 
         AppContext.seatService.createSeat(eventId, seat);
-
         System.out.println("Seat added successfully.");
     }
 
     public void viewAllAvailableSeats(Long eventId) {
-
         List<Seat> seats = AppContext.seatService.getAvailableSeats(eventId);
 
         if (seats.isEmpty()) {
@@ -112,7 +128,6 @@ public class OperatorController {
     }
 
     public void viewAllReservedSeats(Long eventId) {
-
         List<Seat> seats = AppContext.seatService.getReservedSeats(eventId);
 
         if (seats.isEmpty()) {

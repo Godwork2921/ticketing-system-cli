@@ -11,6 +11,9 @@ import java.util.List;
 
 public class UserDAO {
 
+    // =====================================================
+    // SAVE USER
+    // =====================================================
     public void save(User user) {
 
         String sql = """
@@ -31,7 +34,8 @@ public class UserDAO {
 
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    user.setId(keys.getLong(1));
+                    // ❌ no setter anymore
+                    // we ignore setting id OR reconstruct object if needed
                 }
             }
 
@@ -44,6 +48,9 @@ public class UserDAO {
         }
     }
 
+    // =====================================================
+    // FIND BY EMAIL
+    // =====================================================
     public User findByEmail(String email) {
 
         User cached = UserCache.get(email);
@@ -60,13 +67,7 @@ public class UserDAO {
 
                 if (rs.next()) {
 
-                    User user = new User(
-                            rs.getLong("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            Role.valueOf(rs.getString("role")),
-                            rs.getString("password")
-                    );
+                    User user = mapRow(rs);
 
                     UserCache.put(user);
                     return user;
@@ -80,6 +81,9 @@ public class UserDAO {
         return null;
     }
 
+    // =====================================================
+    // FIND ALL
+    // =====================================================
     public List<User> findAll() {
 
         List<User> users = new ArrayList<>();
@@ -91,14 +95,7 @@ public class UserDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-
-                users.add(new User(
-                        rs.getLong("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        Role.valueOf(rs.getString("role")),
-                        rs.getString("password")
-                ));
+                users.add(mapRow(rs));
             }
 
         } catch (Exception e) {
@@ -106,5 +103,19 @@ public class UserDAO {
         }
 
         return users;
+    }
+
+    // =====================================================
+    // MAPPER
+    // =====================================================
+    private User mapRow(ResultSet rs) throws SQLException {
+
+        return new User(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                Role.valueOf(rs.getString("role")),
+                rs.getString("password")
+        );
     }
 }

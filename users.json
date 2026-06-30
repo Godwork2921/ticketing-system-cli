@@ -1,1 +1,33 @@
-[ ]
+[ {
+  "id" : 23,
+  "name" : "Admin",
+  "email" : "admin@test.com",
+  "role" : "OPERATOR",
+  "password" : "$2a$10$Q2KP2eN3vWUqDq50ytxe3OseT6En6KvqM9o.7bJ0UE4gQ25eJDKwq",
+  "customer" : false,
+  "operator" : true
+}, {
+  "id" : 24,
+  "name" : "John",
+  "email" : "john@test.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$BXLxr96/HR1KCNnjGzL7oOzY7Q4slhiAS3mNhTO/G0YD1DNjZvnNi",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 25,
+  "name" : "Sara",
+  "email" : "sara@test.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$gZfxAhVesFS0eGATWdlkTewvbCoivME9epH3PK9ZP5nuJFaTwGjsG",
+  "customer" : true,
+  "operator" : false
+}, {
+  "id" : 26,
+  "name" : "abebe",
+  "email" : "abe@gmail.com",
+  "role" : "CUSTOMER",
+  "password" : "$2a$10$VdPiOe2jEzKdLnypaOlVwu0ocw9XBvevJTnz8ZrIeLocZTtgNXBDe",
+  "customer" : true,
+  "operator" : false
+} ]

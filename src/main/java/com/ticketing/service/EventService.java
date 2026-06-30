@@ -47,7 +47,6 @@ public class EventService {
     public Event findById(Long id) {
         return eventDAO.findById(id);
     }
-
     // DELETE
     public boolean removeEvent(Long id) {
         return eventDAO.delete(id);

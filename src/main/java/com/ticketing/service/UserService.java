@@ -1,7 +1,9 @@
 package com.ticketing.service;
 
 import com.ticketing.dao.UserDAO;
+import com.ticketing.enums.Role;
 import com.ticketing.model.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 
@@ -9,9 +11,9 @@ public class UserService {
 
     private final UserDAO userDAO = new UserDAO();
 
-    /**
-     * Register a new user (DB-based)
-     */
+    // =====================================================
+    // REGISTER USER
+    // =====================================================
     public void registerUser(User user) {
 
         if (user == null) {
@@ -22,12 +24,20 @@ public class UserService {
             throw new RuntimeException("Email already registered");
         }
 
-        userDAO.save(user);
+        // DO NOT mutate domain object → create new secure instance
+        User secureUser = new User(
+                user.getName(),
+                user.getEmail(),
+                BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()),
+                user.getRole() == null ? Role.CUSTOMER : user.getRole()
+        );
+
+        userDAO.save(secureUser);
     }
 
-    /**
-     * Find user by email (used for login)
-     */
+    // =====================================================
+    // FIND USER
+    // =====================================================
     public User findByEmail(String email) {
 
         if (email == null || email.isBlank()) {
@@ -37,23 +47,23 @@ public class UserService {
         return userDAO.findByEmail(email);
     }
 
-    /**
-     * Get all users from DB
-     */
+    // =====================================================
+    // GET ALL USERS
+    // =====================================================
     public List<User> getAllUsers() {
         return userDAO.findAll();
     }
 
-    /**
-     * Check if email already exists
-     */
+    // =====================================================
+    // CHECK EMAIL EXISTS
+    // =====================================================
     public boolean emailExists(String email) {
         return userDAO.findByEmail(email) != null;
     }
 
-    /**
-     * Validate login credentials (optional helper)
-     */
+    // =====================================================
+    // LOGIN VALIDATION
+    // =====================================================
     public User validateLogin(String email, String password) {
 
         User user = userDAO.findByEmail(email);
@@ -62,7 +72,7 @@ public class UserService {
             return null;
         }
 
-        if (!user.getPassword().equals(password)) {
+        if (!BCrypt.checkpw(password, user.getPassword())) {
             return null;
         }
 

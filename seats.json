@@ -1,10 +1,37 @@
 [ {
+  "id" : 2,
+  "eventId" : 1,
+  "section" : "VIP",
+  "row" : "A",
+  "number" : 2,
+  "status" : "AVAILABLE",
+  "available" : true,
+  "seatLabel" : "VIP-A-2"
+}, {
+  "id" : 4,
+  "eventId" : 1,
+  "section" : "REGULAR",
+  "row" : "B",
+  "number" : 2,
+  "status" : "AVAILABLE",
+  "available" : true,
+  "seatLabel" : "REGULAR-B-2"
+}, {
+  "id" : 3,
+  "eventId" : 1,
+  "section" : "REGULAR",
+  "row" : "B",
+  "number" : 1,
+  "status" : "RESERVED",
+  "available" : false,
+  "seatLabel" : "REGULAR-B-1"
+}, {
   "id" : 1,
   "eventId" : 1,
   "section" : "VIP",
   "row" : "A",
   "number" : 1,
-  "status" : "AVAILABLE",
-  "seatLabel" : "VIP-A-1",
-  "available" : true
+  "status" : "RESERVED",
+  "available" : false,
+  "seatLabel" : "VIP-A-1"
 } ]

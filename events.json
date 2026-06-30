@@ -18,13 +18,13 @@
   "id" : 1,
   "title" : "java",
   "venue" : {
-    "id" : 1,
-    "name" : "Test Venue",
-    "address" : "Addis",
-    "timezone" : "UTC"
+    "id" : 2,
+    "name" : "milinium",
+    "address" : "AA",
+    "timezone" : "Africa/Addis_Ababa"
   },
-  "startTime" : "2026-09-21T12:00:00",
-  "endTime" : "2026-09-21T22:00:00",
+  "startTime" : "2026-07-12T12:00:00",
+  "endTime" : "2026-07-12T22:00:00",
   "basePrice" : 100.0,
   "status" : "ACTIVE",
   "seats" : [ ],

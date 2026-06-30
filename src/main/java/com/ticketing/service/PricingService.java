@@ -1,75 +1,54 @@
 package com.ticketing.service;
 
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 import com.ticketing.model.Seat;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Currency;
 
 public class PricingService {
 
-    public double calculateFinalPrice(
+    public Money calculateFinalPrice(
             Event event,
             Seat seat,
             LocalDateTime bookingTime
     ) {
-
-        double price =
-                event.getBasePrice();
+        Money basePrice = event.getBasePrice();
+        BigDecimal price = basePrice.amount();
+        Currency currency = basePrice.currency();
 
         // =========================
         // VIP / REGULAR MULTIPLIER
         // =========================
-
-        if (
-                seat.getSection()
-                        .equalsIgnoreCase("VIP")
-        ) {
-
-            price *= 3.0;
-
-        } else {
-
-            price *= 1.0;
+        if (seat.getSection().equalsIgnoreCase("VIP")) {
+            price = price.multiply(BigDecimal.valueOf(3.0));
         }
 
         // =========================
         // EARLY / LATE BOOKING
         // =========================
-
         long hoursBeforeEvent =
-                Duration.between(
-                                bookingTime,
-                                event.getStartTime()
-                        )
-                        .toHours();
+                Duration.between(bookingTime, event.getStartTime()).toHours();
 
-        // More than 10 days early
-        if (hoursBeforeEvent > 240) {
-
-            price *= 0.80;
-
-        }
-
-        // Less than 24 hours
-        else if (hoursBeforeEvent < 24) {
-
-            price *= 1.30;
+        if (hoursBeforeEvent > 240) { // More than 10 days early
+            price = price.multiply(BigDecimal.valueOf(0.80));
+        } else if (hoursBeforeEvent < 24) { // Less than 24 hours
+            price = price.multiply(BigDecimal.valueOf(1.30));
         }
 
         // =========================
         // FRONT ROW PREMIUM
         // =========================
-
-        if (
-                seat.getNumber() <= 5
-        ) {
-
-            price *= 1.10;
+        if (seat.getNumber() <= 5) {
+            price = price.multiply(BigDecimal.valueOf(1.10));
         }
 
-        return Math.round(
-                price * 100.0
-        ) / 100.0;
+        // Round to 2 decimal places
+        price = price.setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        return new Money(price, currency);
     }
 }

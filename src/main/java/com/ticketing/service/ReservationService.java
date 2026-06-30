@@ -1,6 +1,5 @@
 package com.ticketing.service;
-import com.ticketing.service.pricing.PricingService;
-import com.ticketing.service.EventService;
+
 import com.ticketing.concurrency.SeatLockManager;
 import com.ticketing.dao.ReservationDAO;
 import com.ticketing.dao.SeatDAO;
@@ -8,10 +7,13 @@ import com.ticketing.database.DBConnection;
 import com.ticketing.enums.ReservationStatus;
 import com.ticketing.enums.SeatStatus;
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 import com.ticketing.model.Reservation;
 import com.ticketing.model.Seat;
+import com.ticketing.service.pricing.PricingService;
 
 import java.sql.Connection;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -22,9 +24,19 @@ public class ReservationService {
     private final SeatDAO seatDAO = new SeatDAO();
     private final PricingService pricingService = new PricingService();
     private final EventService eventService = new EventService();
+    private final Clock clock;
+
+    // ===================== CONSTRUCTOR =====================
+    public ReservationService(Clock clock) {
+        this.clock = clock;
+    }
+
+    public ReservationService() {
+        this(Clock.systemDefaultZone());
+    }
 
     // =====================================================
-    // RESERVE SEAT (FIXED - FULL ATOMIC SAFETY)
+    // RESERVE SEAT (ATOMIC + SAFE)
     // =====================================================
     public boolean reserveSeat(String email, Long eventId, Long seatId) {
 
@@ -36,52 +48,59 @@ public class ReservationService {
             conn.setAutoCommit(false);
 
             try {
-
+                // 1. Load event
                 Event event = eventService.findById(eventId);
                 if (event == null) {
                     conn.rollback();
                     return false;
                 }
 
+                // 2. Idempotency check
                 if (reservationDAO.exists(conn, email, eventId, seatId)) {
                     conn.rollback();
                     return false;
                 }
 
-                // 🔥 ATOMIC DB LOCKING STEP
+                // 3. Atomic seat update (THIS IS THE REAL GATE)
                 int updated = seatDAO.reserveIfAvailable(conn, seatId);
-
                 if (updated != 1) {
                     conn.rollback();
                     return false;
                 }
 
+                // 4. Load seat
                 Seat seat = seatDAO.findById(conn, seatId);
+                if (seat == null) {
+                    conn.rollback();
+                    return false;
+                }
 
-                double price = pricingService.calculateFinalPrice(
-                        event,
-                        seat,
-                        LocalDateTime.now()
-                );
+                // 5. Time (CLOCK FIXED)
+                LocalDateTime now = LocalDateTime.now(clock);
 
-                Reservation r = new Reservation(
+                // 6. Pricing (Money object)
+                Money price = pricingService.calculateFinalPrice(event, seat, now);
+
+                // 7. Create reservation (correct constructor)
+                Reservation reservation = new Reservation(
                         email,
                         eventId,
                         seatId,
                         ReservationStatus.CONFIRMED,
-                        LocalDateTime.now()
+                        now
                 );
 
-                r.setFinalPrice(price);
-
-                reservationDAO.save(conn, r);
+                // 8. IMPORTANT: assign Money (you were missing this)
+                reservation.assignFinalPrice(price);
+                // 9. Persist
+                reservationDAO.save(conn, reservation);
 
                 conn.commit();
                 return true;
 
             } catch (Exception e) {
                 conn.rollback();
-                throw new RuntimeException(e);
+                throw new RuntimeException("Reservation failed", e);
             }
 
         } catch (Exception e) {
@@ -91,8 +110,9 @@ public class ReservationService {
             lock.unlock();
         }
     }
+
     // =====================================================
-    // CANCEL RESERVATION (FIXED - TRANSACTION SAFE)
+    // CANCEL RESERVATION
     // =====================================================
     public boolean cancelReservation(Long reservationId) {
 
@@ -101,25 +121,27 @@ public class ReservationService {
             conn.setAutoCommit(false);
 
             try {
-
                 Reservation reservation = reservationDAO.findById(conn, reservationId);
+
                 if (reservation == null) {
                     conn.rollback();
                     return false;
                 }
 
-                Long seatId = reservation.getSeatId();
-                Long eventId = reservation.getEventId();
+                ReentrantLock lock = SeatLockManager.getLock(
+                        reservation.getEventId(),
+                        reservation.getSeatId()
+                );
 
-                ReentrantLock lock = SeatLockManager.getLock(eventId, seatId);
                 lock.lock();
 
                 try {
+                    boolean seatOk = seatDAO.updateStatus(
+                            conn,
+                            reservation.getSeatId(),
+                            SeatStatus.AVAILABLE
+                    );
 
-                    // 1. Free seat
-                    boolean seatOk = seatDAO.updateStatus(conn, seatId, SeatStatus.AVAILABLE);
-
-                    // 2. Cancel reservation
                     boolean resOk = reservationDAO.cancel(conn, reservationId);
 
                     if (!seatOk || !resOk) {
@@ -136,7 +158,7 @@ public class ReservationService {
 
             } catch (Exception e) {
                 conn.rollback();
-                throw new RuntimeException("Cancel reservation failed", e);
+                throw new RuntimeException("Cancel failed", e);
             }
 
         } catch (Exception e) {
@@ -144,8 +166,10 @@ public class ReservationService {
         }
     }
 
+
+
     // =====================================================
-    // OTHER METHODS
+    // READ OPERATIONS
     // =====================================================
     public List<Reservation> getAllReservations() {
         return reservationDAO.findAll();
@@ -154,12 +178,11 @@ public class ReservationService {
     public List<Reservation> getReservationsByCustomer(String email) {
         return reservationDAO.findAll()
                 .stream()
-                .filter(r -> r.getCustomerEmail().equals(email))
+                .filter(r -> r.getCustomerEmail().equalsIgnoreCase(email))
                 .toList();
     }
 
     public Reservation findById(Long id) {
-
         try (Connection conn = DBConnection.getConnection()) {
             return reservationDAO.findById(conn, id);
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 package concurrency;
 
-import com.ticketing.service.ReservationService;
 import com.ticketing.dao.SeatDAO;
+import com.ticketing.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import util.TestDataSeeder;
@@ -15,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HoldExpiryTest {
 
-    private SeatDAO seatDAO = new SeatDAO();
+    private final SeatDAO seatDAO = new SeatDAO();
 
     @BeforeEach
     void setup() throws SQLException {
+
         TestDatabaseCleaner.cleanAll();
         TestDataSeeder.seed();
         seatDAO.resetSeat(1L);
@@ -27,35 +28,58 @@ public class HoldExpiryTest {
     @Test
     void stressTest100Users() throws Exception {
 
-        ExecutorService executor = Executors.newFixedThreadPool(100);
-        CountDownLatch latch = new CountDownLatch(100);
-        AtomicInteger success = new AtomicInteger();
+        final int THREADS = 100;
 
-        ReservationService service = new ReservationService();
+        ExecutorService executor =
+                Executors.newFixedThreadPool(THREADS);
 
-        for (int i = 0; i < 100; i++) {
+        CyclicBarrier barrier =
+                new CyclicBarrier(THREADS);
 
-            int user = i;
+        CountDownLatch finished =
+                new CountDownLatch(THREADS);
+
+        AtomicInteger success =
+                new AtomicInteger();
+
+        ReservationService service =
+                new ReservationService();
+
+        for (int i = 0; i < THREADS; i++) {
+
+            final int user = i;
 
             executor.submit(() -> {
+
                 try {
+
+                    // Ensure all threads start simultaneously
+                    barrier.await();
+
                     if (service.reserveSeat(
-                            "u" + user + "@mail.com",
+                            "user" + user + "@mail.com",
                             1L,
                             1L
                     )) {
                         success.incrementAndGet();
                     }
+
                 } catch (Exception ignored) {
+
                 } finally {
-                    latch.countDown();
+                    finished.countDown();
                 }
             });
         }
 
-        latch.await();
+        finished.await();
+
         executor.shutdown();
 
-        assertEquals(1, success.get());
+        assertEquals(
+                1,
+                success.get(),
+                "Exactly one reservation should succeed."
+        );
     }
 }

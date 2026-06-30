@@ -83,7 +83,8 @@ public class HoldService {
             // NOTE: ideally expiration should be set via domain method,
             // but your current model still allows setter (acceptable transitional stage)
 
-            hold.holdForSeconds(now, ttlSeconds);            // PERSIST
+            hold.setExpiration(clock, ttlSeconds);            // =====================================================
+            // PERSIST
             // =====================================================
             reservationDAO.save(conn, hold);
 

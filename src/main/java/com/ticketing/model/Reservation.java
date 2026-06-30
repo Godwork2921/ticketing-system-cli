@@ -1,90 +1,130 @@
 package com.ticketing.model;
 
 import com.ticketing.enums.ReservationStatus;
-import lombok.*;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.Objects;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
 public class Reservation {
 
-    private Long id;
-    private String customerEmail;
-    private Long eventId;
-    private Long seatId;
-    private double finalPrice;
+    // =====================================================
+    // CORE IDENTITY (IMMUTABLE)
+    // =====================================================
+    private final Long id;
+    private final String customerEmail;
+    private final Long eventId;
+    private final Long seatId;
+    private final LocalDateTime createdAt;
 
+    // =====================================================
+    // MUTABLE STATE
+    // =====================================================
     private ReservationStatus status;
-
-    private LocalDateTime createdAt;
+    private Money finalPrice;
     private LocalDateTime expiresAt;
 
-    // ==========================================
-    // Constructor (Business creation)
-    // ==========================================
-    public Reservation(
-            String customerEmail,
-            Long eventId,
-            Long seatId,
-            ReservationStatus status,
-            LocalDateTime createdAt
-    ) {
-        this.customerEmail = customerEmail;
-        this.eventId = eventId;
-        this.seatId = seatId;
-        this.status = status;
-        this.createdAt = createdAt;
+    // =====================================================
+    // BUSINESS CONSTRUCTOR
+    // =====================================================
+    public Reservation(String customerEmail,
+                       Long eventId,
+                       Long seatId,
+                       ReservationStatus status,
+                       LocalDateTime createdAt) {
+
+        this.id = null;
+        this.customerEmail = Objects.requireNonNull(customerEmail);
+        this.eventId = Objects.requireNonNull(eventId);
+        this.seatId = Objects.requireNonNull(seatId);
+        this.status = Objects.requireNonNull(status);
+        this.createdAt = Objects.requireNonNull(createdAt);
     }
 
-    // ==========================================
-    // HOLD STATE (Temporary Reservation)
-    // ==========================================
-    public void holdForMinutes(int minutes) {
+    // =====================================================
+    // DAO CONSTRUCTOR
+    // =====================================================
+    public Reservation(Long id,
+                       String customerEmail,
+                       Long eventId,
+                       Long seatId,
+                       ReservationStatus status,
+                       LocalDateTime createdAt,
+                       Money finalPrice,
+                       LocalDateTime expiresAt) {
 
+        this.id = id;
+        this.customerEmail = Objects.requireNonNull(customerEmail);
+        this.eventId = Objects.requireNonNull(eventId);
+        this.seatId = Objects.requireNonNull(seatId);
+        this.status = Objects.requireNonNull(status);
+        this.createdAt = Objects.requireNonNull(createdAt);
+        this.finalPrice = finalPrice;
+        this.expiresAt = expiresAt;
+    }
+
+    // =====================================================
+    // DOMAIN BEHAVIOR
+    // =====================================================
+
+    public void holdForMinutes(int minutes, Clock clock) {
         this.status = ReservationStatus.HOLDING;
-
-        this.expiresAt = LocalDateTime.now()
-                .plusMinutes(minutes);
+        this.expiresAt = LocalDateTime.now(clock).plusMinutes(minutes);
     }
 
-    // ==========================================
-    // EXPIRED CHECK (TTL LOGIC)
-    // ==========================================
-    public boolean isExpired() {
-
-        return expiresAt != null
-                && LocalDateTime.now().isAfter(expiresAt);
-    }
-
-    // ==========================================
-    // CONFIRM RESERVATION
-    // ==========================================
     public void confirm() {
         this.status = ReservationStatus.CONFIRMED;
         this.expiresAt = null;
     }
 
-    // ==========================================
-    // IDEMPOTENCY KEY
-    // ==========================================
-    public String uniqueKey() {
+    public void holdForSeconds(LocalDateTime now, long ttlSeconds) {
 
-        return String.format(
-                "%s-%d-%d",
-                customerEmail == null ? "" : customerEmail.toLowerCase(),
-                eventId,
-                seatId
-        );
+        if (status == ReservationStatus.CONFIRMED) {
+            throw new IllegalStateException(
+                    "Confirmed reservation cannot be put on hold."
+            );
+        }
+
+        this.status = ReservationStatus.HOLDING;
+        this.expiresAt = now.plusSeconds(ttlSeconds);
     }
 
-    // ==========================================
-    // BUSINESS HELPERS
-    // ==========================================
+    public boolean isExpired(Clock clock) {
+        return expiresAt != null &&
+                LocalDateTime.now(clock).isAfter(expiresAt);
+    }
+
+    public void assignFinalPrice(Money price) {
+        this.finalPrice = Objects.requireNonNull(price);
+    }
+
+    // =====================================================
+    // IDEMPOTENCY KEY (STRONG)
+    // =====================================================
+    public String uniqueKey() {
+        try {
+            String raw = customerEmail.trim().toLowerCase()
+                    + "|" + eventId
+                    + "|" + seatId;
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(raw.getBytes(StandardCharsets.UTF_8));
+
+            return HexFormat.of().formatHex(hash);
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+
+    // =====================================================
+    // QUERIES
+    // =====================================================
     public boolean isConfirmed() {
         return status == ReservationStatus.CONFIRMED;
     }
@@ -94,11 +134,19 @@ public class Reservation {
     }
 
     public boolean belongsToCustomer(String email) {
-        return email != null
-                && email.equalsIgnoreCase(customerEmail);
+        return email != null &&
+                customerEmail.equalsIgnoreCase(email.trim());
     }
 
-    public boolean belongsToEvent(Long eventId) {
-        return Objects.equals(this.eventId, eventId);
-    }
+    // =====================================================
+    // GETTERS ONLY
+    // =====================================================
+    public Long getId() { return id; }
+    public String getCustomerEmail() { return customerEmail; }
+    public Long getEventId() { return eventId; }
+    public Long getSeatId() { return seatId; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public ReservationStatus getStatus() { return status; }
+    public Money getFinalPrice() { return finalPrice; }
+    public LocalDateTime getExpiresAt() { return expiresAt; }
 }

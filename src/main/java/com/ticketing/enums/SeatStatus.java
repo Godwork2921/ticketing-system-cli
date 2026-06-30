@@ -4,5 +4,6 @@ public enum SeatStatus {
     AVAILABLE,
     RESERVED,
     HELD,
-    EXPIRED
+    EXPIRED,
+    BLOCKED
 }

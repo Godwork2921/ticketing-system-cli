@@ -1,6 +1,7 @@
 package com.ticketing.service.pricing;
 
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 import com.ticketing.model.Seat;
 
 import java.time.LocalDateTime;
@@ -12,20 +13,19 @@ public class PricingService {
 
     public PricingService() {
         this.strategies = List.of(
-                new BasePricingStrategy(),
                 new VIPPricingStrategy(),
                 new TimeDiscountStrategy()
         );
     }
 
-    public double calculateFinalPrice(Event event,
-                                      Seat seat,
-                                      LocalDateTime time) {
+    public Money calculateFinalPrice(Event event,
+                                     Seat seat,
+                                     LocalDateTime time) {
 
-        double price = event.getBasePrice();
+        Money price = event.getBasePrice();
 
         for (PricingStrategy strategy : strategies) {
-            price = strategy.calculate(event, seat, time);
+            price = strategy.apply(price, event, seat, time);
         }
 
         return price;

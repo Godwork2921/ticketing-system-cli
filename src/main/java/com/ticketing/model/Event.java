@@ -2,68 +2,191 @@ package com.ticketing.model;
 
 import com.ticketing.enums.EventStatus;
 import com.ticketing.enums.SeatStatus;
-import lombok.*;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
+/**
+ * Event Aggregate Root (clean DDD-style)
+ * - Encapsulates state
+ * - No Lombok exposure
+ * - Business-driven behavior only
+ */
 public class Event {
 
-    private Long id;
-    private String title;
-    private Venue venue;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private double basePrice;
+    private final Long id;
+    private final String title;
+    private final Venue venue;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
+    private final Money basePrice;
+
     private EventStatus status;
-    private List<Seat> seats = new ArrayList<>();
 
-    // ================= Helper Methods =================
+    // Use Map instead of List for fast lookup (production-style improvement)
+    private final Map<Long, Seat> seats = new HashMap<>();
 
-    public int getTotalSeats() {
-        return seats == null ? 0 : seats.size();
+    // ================= CONSTRUCTOR =================
+    public Event(Long id,
+                 String title,
+                 Venue venue,
+                 LocalDateTime startTime,
+                 LocalDateTime endTime,
+                 Money basePrice,
+                 EventStatus status,
+                 List<Seat> initialSeats) {
+
+        this.id = Objects.requireNonNull(id, "id cannot be null");
+        this.title = validateText(title, "title");
+        this.venue = Objects.requireNonNull(venue, "venue cannot be null");
+        this.startTime = Objects.requireNonNull(startTime, "startTime cannot be null");
+        this.endTime = Objects.requireNonNull(endTime, "endTime cannot be null");
+        this.basePrice = Objects.requireNonNull(basePrice, "basePrice cannot be null");
+        this.status = Objects.requireNonNull(status, "status cannot be null");
+
+        if (initialSeats != null) {
+            for (Seat seat : initialSeats) {
+                seats.put(seat.getId(), seat);
+            }
+        }
+    }
+
+    // ================= DOMAIN BEHAVIOR =================
+
+    public void cancel() {
+        ensureActive();
+        this.status = EventStatus.CANCELLED;
+    }
+
+    public void complete(Clock clock) {
+        if (LocalDateTime.now(clock).isBefore(endTime)) {
+            throw new IllegalStateException("Event cannot be completed before end time");
+        }
+        this.status = EventStatus.COMPLETED;
+    }
+
+    public void activate() {
+        this.status = EventStatus.ACTIVE;
+    }
+
+    // ================= SEAT MANAGEMENT =================
+
+    public void addSeat(Seat seat) {
+        ensureActive();
+
+        Objects.requireNonNull(seat, "seat cannot be null");
+
+        if (seats.containsKey(seat.getId())) {
+            throw new IllegalStateException("Seat already exists: " + seat.getId());
+        }
+
+        seats.put(seat.getId(), seat);
     }
 
     public Seat getSeatById(Long seatId) {
-
-        if (seats == null) {
-            return null;
-        }
-
-        return seats.stream()
-                .filter(seat -> seatId.equals(seat.getId()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public List<Seat> getAvailableSeats() {
-
-        if (seats == null) {
-            return new ArrayList<>();
-        }
-
-        return seats.stream()
-                .filter(seat -> seat.getStatus() == SeatStatus.AVAILABLE)
-                .collect(Collectors.toList());
+        return seats.get(seatId);
     }
 
     public boolean hasSeat(Long seatId) {
-        return getSeatById(seatId) != null;
+        return seats.containsKey(seatId);
     }
 
-    public void addSeat(Seat seat) {
+    public List<Seat> getAvailableSeats() {
+        return seats.values()
+                .stream()
+                .filter(s -> s.getStatus() == SeatStatus.AVAILABLE)
+                .collect(Collectors.toList());
+    }
 
-        if (seats == null) {
-            seats = new ArrayList<>();
+    public int getTotalSeats() {
+        return seats.size();
+    }
+
+    // ================= BUSINESS RULES =================
+
+    private void ensureActive() {
+        if (status != EventStatus.ACTIVE) {
+            throw new IllegalStateException("Event is not ACTIVE. Current status: " + status);
+        }
+    }
+
+    // ================= QUERY METHODS =================
+
+    public boolean isActive() {
+        return status == EventStatus.ACTIVE;
+    }
+
+    public boolean isCancelled() {
+        return status == EventStatus.CANCELLED;
+    }
+
+    public boolean isCompleted() {
+        return status == EventStatus.COMPLETED;
+    }
+
+    // ================= VALIDATION =================
+
+    private String validateText(String value, String field) {
+        Objects.requireNonNull(value, field + " cannot be null");
+
+        String trimmed = value.trim();
+
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException(field + " cannot be empty");
         }
 
-        seats.add(seat);
+        return trimmed;
+    }
+
+    // ================= GETTERS (READ-ONLY) =================
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Venue getVenue() {
+        return venue;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public Money getBasePrice() {
+        return basePrice;
+    }
+
+    public EventStatus getStatus() {
+        return status;
+    }
+
+    public List<Seat> getSeats() {
+        return new ArrayList<>(seats.values());
+    }
+
+    // ================= TO STRING =================
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", venue=" + venue.getName() +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", basePrice=" + basePrice +
+                ", status=" + status +
+                ", totalSeats=" + seats.size() +
+                '}';
     }
 }

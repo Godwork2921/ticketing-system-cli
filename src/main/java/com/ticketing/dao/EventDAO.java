@@ -3,11 +3,14 @@ package com.ticketing.dao;
 import com.ticketing.database.DBConnection;
 import com.ticketing.enums.EventStatus;
 import com.ticketing.model.Event;
+import com.ticketing.model.Money;
 import com.ticketing.model.Venue;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 
 public class EventDAO {
@@ -16,11 +19,10 @@ public class EventDAO {
 
     // ================= SAVE =================
     public void save(Event event) {
-
         String sql = """
             INSERT INTO events
-            (id, title, venue_id, base_price, start_time, end_time, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (id, title, venue_id, base_price, currency, start_time, end_time, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = DBConnection.getConnection();
@@ -29,10 +31,14 @@ public class EventDAO {
             ps.setLong(1, event.getId());
             ps.setString(2, event.getTitle());
             ps.setLong(3, event.getVenue().getId());
-            ps.setDouble(4, event.getBasePrice());
-            ps.setTimestamp(5, Timestamp.valueOf(event.getStartTime()));
-            ps.setTimestamp(6, Timestamp.valueOf(event.getEndTime()));
-            ps.setString(7, event.getStatus().name());
+
+            Money price = event.getBasePrice();
+            ps.setBigDecimal(4, price.amount());
+            ps.setString(5, price.currency().getCurrencyCode());
+
+            ps.setTimestamp(6, Timestamp.valueOf(event.getStartTime()));
+            ps.setTimestamp(7, Timestamp.valueOf(event.getEndTime()));
+            ps.setString(8, event.getStatus().name());
 
             ps.executeUpdate();
 
@@ -43,9 +49,7 @@ public class EventDAO {
 
     // ================= FIND ALL =================
     public List<Event> findAll() {
-
         List<Event> events = new ArrayList<>();
-
         String sql = "SELECT * FROM events";
 
         try (Connection conn = DBConnection.getConnection();
@@ -59,13 +63,11 @@ public class EventDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to load events", e);
         }
-
         return events;
     }
 
     // ================= FIND BY ID =================
     public Event findById(Long id) {
-
         String sql = "SELECT * FROM events WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -74,7 +76,6 @@ public class EventDAO {
             ps.setLong(1, id);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 if (rs.next()) {
                     return mapRow(rs);
                 }
@@ -83,15 +84,12 @@ public class EventDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to find event", e);
         }
-
         return null;
     }
 
     // ================= FIND BY VENUE =================
     public List<Event> findByVenueId(Long venueId) {
-
         List<Event> events = new ArrayList<>();
-
         String sql = "SELECT * FROM events WHERE venue_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -100,7 +98,6 @@ public class EventDAO {
             ps.setLong(1, venueId);
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 while (rs.next()) {
                     events.add(mapRow(rs));
                 }
@@ -109,18 +106,11 @@ public class EventDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to load events by venue", e);
         }
-
         return events;
     }
 
-    // ================= EVENT EXISTS (CONFLICT CHECK) =================
-    public boolean eventExists(
-            String title,
-            Long venueId,
-            LocalDateTime start,
-            LocalDateTime end
-    ) {
-
+    // ================= EVENT EXISTS =================
+    public boolean eventExists(String title, Long venueId, LocalDateTime start, LocalDateTime end) {
         String sql = """
             SELECT COUNT(*)
             FROM events
@@ -138,7 +128,6 @@ public class EventDAO {
             ps.setTimestamp(4, Timestamp.valueOf(end));
 
             try (ResultSet rs = ps.executeQuery()) {
-
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
                 }
@@ -147,16 +136,14 @@ public class EventDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to check event existence", e);
         }
-
         return false;
     }
 
     // ================= UPDATE =================
     public boolean update(Event event) {
-
         String sql = """
             UPDATE events
-            SET title = ?, venue_id = ?, base_price = ?,
+            SET title = ?, venue_id = ?, base_price = ?, currency = ?,
                 start_time = ?, end_time = ?, status = ?
             WHERE id = ?
         """;
@@ -166,11 +153,15 @@ public class EventDAO {
 
             ps.setString(1, event.getTitle());
             ps.setLong(2, event.getVenue().getId());
-            ps.setDouble(3, event.getBasePrice());
-            ps.setTimestamp(4, Timestamp.valueOf(event.getStartTime()));
-            ps.setTimestamp(5, Timestamp.valueOf(event.getEndTime()));
-            ps.setString(6, event.getStatus().name());
-            ps.setLong(7, event.getId());
+
+            Money price = event.getBasePrice();
+            ps.setBigDecimal(3, price.amount());
+            ps.setString(4, price.currency().getCurrencyCode());
+
+            ps.setTimestamp(5, Timestamp.valueOf(event.getStartTime()));
+            ps.setTimestamp(6, Timestamp.valueOf(event.getEndTime()));
+            ps.setString(7, event.getStatus().name());
+            ps.setLong(8, event.getId());
 
             return ps.executeUpdate() > 0;
 
@@ -181,7 +172,6 @@ public class EventDAO {
 
     // ================= DELETE =================
     public boolean delete(Long id) {
-
         String sql = "DELETE FROM events WHERE id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -195,10 +185,13 @@ public class EventDAO {
         }
     }
 
-    // ================= MAPPER (FIXED + CLEAN) =================
+    // ================= MAPPER =================
     private Event mapRow(ResultSet rs) throws SQLException {
-
         Venue venue = venueDAO.findById(rs.getLong("venue_id"));
+
+        BigDecimal amount = rs.getBigDecimal("base_price");
+        String currencyCode = rs.getString("currency");
+        Money money = new Money(amount, Currency.getInstance(currencyCode));
 
         return new Event(
                 rs.getLong("id"),
@@ -206,7 +199,7 @@ public class EventDAO {
                 venue,
                 rs.getTimestamp("start_time").toLocalDateTime(),
                 rs.getTimestamp("end_time").toLocalDateTime(),
-                rs.getDouble("base_price"),
+                money,
                 EventStatus.valueOf(rs.getString("status")),
                 new ArrayList<>()
         );
